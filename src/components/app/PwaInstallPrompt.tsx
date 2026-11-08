@@ -82,8 +82,14 @@ export function PwaInstallPrompt() {
     localStorage.setItem("dastyor_pwa_dismissed", Date.now().toString());
   };
 
-  // Onboarding sahifasida (yo'li "/") PWA o'rnatish banneri ko'rinmasin
-  if (location.pathname === "/") return null;
+  // Faqat onboarding to'liq yakunlangandan keyin yoki /home, /restaurants va boshqa sahifalarda ko'rsatilsin
+  // Agar yo'l "/" bo'lsa yoki hali onboarding tugallanmagan bo'lsa, hech qachon ko'rinmasin
+  const isOnboarding = location.pathname === "/";
+  const hasCompletedOnboarding =
+    typeof window !== "undefined" &&
+    localStorage.getItem("dastyor_onboarding_completed") === "true";
+
+  if (isOnboarding || !hasCompletedOnboarding) return null;
 
   if (!showPrompt) return null;
 

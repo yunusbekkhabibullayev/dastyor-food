@@ -247,9 +247,15 @@ export function ProductCard({ p, onOpen }: { p: Product; onOpen: (p: Product) =>
   const s = useCart();
   const qty = s.items[p.id] ?? 0;
   const liked = s.liked.includes(p.id);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   return (
     <article className="min-w-0 overflow-hidden rounded-3xl border border-border bg-card shadow-card">
-      <div className="relative">
+      <div className="relative overflow-hidden">
+        {/* Shimmer skeleton background until image is loaded */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 aspect-[4/3] w-full fb-skeleton" />
+        )}
         <Button
           variant="unstyled"
           size="unset"
@@ -261,9 +267,14 @@ export function ProductCard({ p, onOpen }: { p: Product; onOpen: (p: Product) =>
             src={p.image}
             alt={p.name}
             loading="lazy"
+            decoding="async"
             width={400}
             height={300}
-            className="aspect-[4/3] w-full object-cover"
+            onLoad={() => setImageLoaded(true)}
+            className={cn(
+              "aspect-[4/3] w-full object-cover transition-all duration-500",
+              imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95",
+            )}
           />
         </Button>
         <Button
@@ -272,7 +283,7 @@ export function ProductCard({ p, onOpen }: { p: Product; onOpen: (p: Product) =>
           aria-label={liked ? "Sevimlilardan olib tashlash" : "Sevimlilarga qo'shish"}
           aria-pressed={liked}
           onClick={() => cart.toggleLike(p.id)}
-          className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-background/90"
+          className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/90 backdrop-blur-xs shadow-xs"
         >
           <Heart
             className={cn("h-4 w-4", liked ? "fill-primary text-primary" : "text-foreground")}
@@ -369,6 +380,7 @@ export function ProductSheet({
   onClose: () => void;
 }) {
   const [qty, setQty] = useState(1);
+  const [sheetImgLoaded, setSheetImgLoaded] = useState(false);
   const s = useCart();
   const liked = product ? s.liked.includes(product.id) : false;
   return (
@@ -378,6 +390,7 @@ export function ProductSheet({
         if (!o) {
           onClose();
           setQty(1);
+          setSheetImgLoaded(false);
         }
       }}
     >
@@ -387,14 +400,20 @@ export function ProductSheet({
       >
         {product && (
           <>
-            <div className="relative w-full aspect-[16/10] bg-muted overflow-hidden">
+            <div className="relative w-full aspect-[16/10] overflow-hidden fb-skeleton">
               <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 h-1 w-10 rounded-full bg-white/70 backdrop-blur-md pointer-events-none" />
               <img
                 src={product.image}
                 alt={product.name}
+                loading="lazy"
+                decoding="async"
                 width={800}
                 height={500}
-                className="h-full w-full object-cover transition-transform duration-300"
+                onLoad={() => setSheetImgLoaded(true)}
+                className={cn(
+                  "h-full w-full object-cover transition-all duration-500",
+                  sheetImgLoaded ? "opacity-100" : "opacity-0",
+                )}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-black/20 pointer-events-none" />
             </div>
