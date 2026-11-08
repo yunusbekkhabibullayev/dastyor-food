@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LocationPicker } from "./LocationPicker";
 import { cart } from "@/lib/cart-store";
 import { profileSettings, type DeliveryLocation } from "@/lib/profile-settings";
-import { profileSchema } from "@/lib/form-validation";
+import { profileSchema, formatUzPhone } from "@/lib/form-validation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -94,13 +94,14 @@ export function CustomerSetupSheet({
           <Field
             label="Telefon raqami"
             value={phone}
-            placeholder="+998 90 123 45 67"
+            placeholder="+998 (90) 123-45-67"
             icon={<Phone className="h-4 w-4 text-muted-foreground/80" />}
             error={err.phone}
             inputMode="tel"
             autoComplete="tel"
             onChange={(v) => {
-              setPhone(v);
+              const formatted = formatUzPhone(v);
+              setPhone(formatted);
               setErr((p) => ({ ...p, phone: undefined }));
             }}
           />

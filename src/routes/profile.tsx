@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
@@ -12,7 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { profileSchema } from "@/lib/form-validation";
+import { profileSchema, formatUzPhone } from "@/lib/form-validation";
 import { AppShell } from "@/components/app/BottomNav";
 import { cart, useCart } from "@/lib/cart-store";
 
@@ -112,8 +112,9 @@ function ProfilePage() {
                 value={f.phone}
                 error={err.phone}
                 inputMode="tel"
+                placeholder="+998 (90) 123-45-67"
                 onChange={(v) => {
-                  setF({ ...f, phone: v });
+                  setF({ ...f, phone: formatUzPhone(v) });
                   setErr({ ...err, phone: undefined });
                 }}
               />
