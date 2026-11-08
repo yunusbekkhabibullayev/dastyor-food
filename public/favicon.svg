@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B00"/>
+      <stop offset="100%" stop-color="#FF3D00"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+
+  <!-- Burger Group -->
+  <g filter="url(#shadow)" transform="translate(0, 1)">
+    <!-- Top Bun -->
+    <path d="M 16 26 C 16 17, 48 17, 48 26 Z" fill="#FFE0B2"/>
+    <path d="M 16 26 C 16 18, 48 18, 48 26 Z" fill="#FFA726"/>
+
+    <!-- Sesame seeds -->
+    <ellipse cx="26" cy="21" rx="1" ry="0.6" fill="#FFF8E1" transform="rotate(-15 26 21)"/>
+    <ellipse cx="32" cy="19.5" rx="1" ry="0.6" fill="#FFF8E1"/>
+    <ellipse cx="38" cy="21" rx="1" ry="0.6" fill="#FFF8E1" transform="rotate(15 38 21)"/>
+
+    <!-- Lettuce -->
+    <path d="M 14 27 C 17 29, 19 26, 23 27 C 27 28, 29 26, 33 27 C 37 28, 39 26, 43 27 C 47 28, 49 26, 50 27 L 49 29 C 47 30, 45 28, 42 29 C 39 30, 37 28, 33 29 C 29 30, 27 28, 23 29 C 19 30, 17 28, 14 29 Z" fill="#4CAF50"/>
+
+    <!-- Cheese -->
+    <path d="M 15 30 L 49 30 L 47 33 L 34 37 L 31 33 L 17 33 Z" fill="#FFD54F"/>
+
+    <!-- Patty -->
+    <rect x="15" y="33" width="34" height="6" rx="3" fill="#5D4037"/>
+
+    <!-- Bottom Bun -->
+    <rect x="17" y="41" width="30" height="5" rx="2.5" fill="#FFA726"/>
+  </g>
+</svg>
+
