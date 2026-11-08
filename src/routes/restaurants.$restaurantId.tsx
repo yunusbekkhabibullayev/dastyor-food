@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Bike, ChevronLeft, Clock, MapPin, Star, Wallet } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
@@ -91,18 +91,21 @@ function RestaurantPage() {
         </Link>
         <LikeRestaurantButton id={r.id} className="restaurant-back absolute right-4 h-10 w-10" />
       </div>
-      <section className="relative -mt-8 rounded-t-3xl bg-background px-5 pt-5">
-        <div className="flex items-center gap-3">
-          <RestaurantLogo r={r} className="h-16 w-16 shrink-0 text-lg shadow-card" />
-          <div className="min-w-0">
-            <h1 className="truncate font-display text-2xl font-bold">{r.name}</h1>
-            <p className="flex items-center gap-1 text-sm">
-              <Star className="h-4 w-4 fill-star text-star" /> <b>{r.rating}</b>
-              <span className="text-muted-foreground">({r.reviews} sharh)</span>
-            </p>
+      <section className="relative -mt-10 rounded-t-[32px] bg-background px-5 pt-6 shadow-xl">
+        <div className="flex items-center gap-3.5">
+          <RestaurantLogo r={r} className="h-16 w-16 shrink-0 rounded-2xl text-lg shadow-md ring-4 ring-background" />
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-display text-2xl font-extrabold tracking-tight text-foreground">{r.name}</h1>
+            <div className="mt-1 flex items-center gap-1.5 text-xs">
+              <span className="flex items-center gap-1 font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                <Star className="h-3.5 w-3.5 fill-amber-500" /> {r.rating}
+              </span>
+              <span className="text-muted-foreground font-medium">({r.reviews} sharh)</span>
+            </div>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+
+        <div className="mt-4 grid grid-cols-3 gap-2.5">
           <Info icon={<Clock className="h-4 w-4" />} label="Vaqt" value={`${r.time} daq`} />
           <Info
             icon={<Bike className="h-4 w-4" />}
@@ -115,9 +118,11 @@ function RestaurantPage() {
             value={formatSom(r.minOrder)}
           />
         </div>
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <MapPin className="h-3.5 w-3.5" /> {r.address}
-        </p>
+
+        <div className="mt-3.5 flex items-center gap-2 rounded-xl bg-muted/40 px-3 py-2 text-xs text-muted-foreground border border-border/40">
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span className="truncate">{r.address}</span>
+        </div>
       </section>
 
       <div className="pt-safe sticky top-0 z-30 space-y-3 bg-background/95 px-5 pb-3 backdrop-blur">
@@ -152,10 +157,12 @@ function RestaurantPage() {
 
 function Info({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-2xl bg-muted px-2 py-2.5">
-      <div className="flex justify-center text-primary">{icon}</div>
-      <p className="mt-1 text-[10px] text-muted-foreground">{label}</p>
-      <p className="break-words text-xs font-bold">{value}</p>
+    <div className="flex flex-col items-center justify-center rounded-2xl bg-card border border-border/60 px-2 py-3 shadow-xs">
+      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <p className="mt-1.5 text-[10px] font-medium text-muted-foreground">{label}</p>
+      <p className="mt-0.5 max-w-full truncate text-[11px] font-bold text-foreground">{value}</p>
     </div>
   );
 }

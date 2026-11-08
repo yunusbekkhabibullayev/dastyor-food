@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, ArrowRight, Star, Clock, ChevronRight, X } from "lucide-react";
@@ -14,12 +14,12 @@ export const Route = createFileRoute("/home")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "Bosh sahifa — Dastyor Food" },
+      { title: "Dastyor Food" },
       {
         name: "description",
         content: "Tumaningizdagi eng yaxshi fast-food xonalar va mashhur taomlar.",
       },
-      { property: "og:title", content: "Bosh sahifa — Dastyor Food" },
+      { property: "og:title", content: "Dastyor Food" },
       {
         property: "og:description",
         content: "Tumaningizdagi eng yaxshi fast-food xonalar va mashhur taomlar.",

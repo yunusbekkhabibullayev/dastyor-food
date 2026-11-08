@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import onboardingDastyor from "@/assets/onboarding-dastyor.png";
 import pizza from "@/assets/pizza.jpg";
@@ -7,17 +7,19 @@ import chicken from "@/assets/chicken.jpg";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+const ONBOARDING_KEY = "dastyor_onboarding_completed";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "Dastyor Food — Tumandagi barcha fast-food bir ilovada" },
+      { title: "Dastyor Food" },
       {
         name: "description",
         content: "Tumandagi barcha fast-food xonalardan tez va qulay buyurtma bering.",
       },
-      { property: "og:title", content: "Dastyor Food — Tumandagi barcha fast-food bir ilovada" },
+      { property: "og:title", content: "Dastyor Food" },
       {
         property: "og:description",
         content: "Tumandagi barcha fast-food xonalardan tez va qulay buyurtma bering.",
@@ -46,10 +48,36 @@ const steps = [
 ];
 
 function Onboarding() {
+  const navigate = useNavigate();
   const [i, setI] = useState(0);
+  const [isClientReady, setIsClientReady] = useState(false);
+
+  useEffect(() => {
+    // Agar foydalanuvchi allaqachon onboardingdan o'tgan bo'lsa, to'g'ridan-to'g'ri /home ga o'tadi
+    if (typeof window !== "undefined") {
+      const hasCompleted = localStorage.getItem(ONBOARDING_KEY);
+      if (hasCompleted === "true") {
+        void navigate({ to: "/home", replace: true });
+        return;
+      }
+      setIsClientReady(true);
+    }
+  }, [navigate]);
+
+  const finishOnboarding = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(ONBOARDING_KEY, "true");
+    }
+    void navigate({ to: "/home" });
+  };
+
   const last = i === steps.length - 1;
   const step = steps[i] ?? steps[0];
-  if (!step) return null;
+
+  // Agar allaqachon o'tgan bo'lsa yoki tekshirilayotgan bo'lsa, miltillashning oldini olish
+  if (!isClientReady || !step) {
+    return <div className="min-h-screen bg-ink" />;
+  }
 
   return (
     <div className="app-splash relative mx-auto max-w-md overflow-hidden bg-ink">
@@ -92,9 +120,13 @@ function Onboarding() {
       <div className="pt-safe relative flex h-full flex-col px-7 pb-6 text-left">
         <div className="flex min-h-12 items-center justify-between gap-4">
           <p className="text-xs font-bold text-ink-foreground/80">{i + 1} / 3</p>
-          <Link to="/home" className="py-3 text-sm font-semibold text-ink-foreground/80">
+          <button
+            type="button"
+            onClick={finishOnboarding}
+            className="py-3 text-sm font-semibold text-ink-foreground/80 hover:text-ink-foreground transition-colors"
+          >
             O'tkazib yuborish
-          </Link>
+          </button>
         </div>
 
         <div
@@ -114,12 +146,14 @@ function Onboarding() {
 
         <div className="pb-safe mt-7 w-full shrink-0">
           {last ? (
-            <Link
-              to="/home"
+            <Button
+              variant="unstyled"
+              size="unset"
+              onClick={finishOnboarding}
               className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-bold text-primary-foreground shadow-cta active:scale-[0.98]"
             >
               Boshlash <ArrowRight className="h-5 w-5" />
-            </Link>
+            </Button>
           ) : (
             <Button
               variant="unstyled"

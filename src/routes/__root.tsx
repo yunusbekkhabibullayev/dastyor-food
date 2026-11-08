@@ -84,13 +84,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Dastyor Food — Tumandagi fast-food xonalar" },
+      { title: "Dastyor Food" },
       { name: "description", content: "Tumandagi barcha fast-food xonalar bir ilovada." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "theme-color", content: "#ff5500" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Dastyor" },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.json" },
       {
         rel: "stylesheet",
         href: appCss,
@@ -102,7 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "shortcut icon", href: "/favicon.ico" },
-      { rel: "apple-touch-icon", href: "/dastyor-food.jpg" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -130,6 +135,15 @@ function RootComponent() {
   useEffect(() => {
     cart.hydrate();
     profileSettings.hydrate();
+
+    // Register Service Worker for PWA
+    if ("serviceWorker" in navigator && process.env.NODE_ENV !== "test") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch((err) => {
+          console.warn("ServiceWorker registration failed: ", err);
+        });
+      });
+    }
   }, []);
   const { language } = useProfileSettings();
   useEffect(() => {
