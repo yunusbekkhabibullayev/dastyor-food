@@ -16,6 +16,7 @@ import { cart } from "@/lib/cart-store";
 import { profileSettings, useProfileSettings } from "@/lib/profile-settings";
 import { TelegramBridge } from "@/components/app/TelegramBridge";
 import { DomTranslator } from "@/components/app/DomTranslator";
+import { PwaInstallPrompt } from "@/components/app/PwaInstallPrompt";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -156,6 +157,7 @@ function RootComponent() {
       <Outlet />
       <TelegramBridge />
       <DomTranslator />
+      <PwaInstallPrompt />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );
