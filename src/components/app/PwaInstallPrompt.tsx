@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +13,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PwaInstallPrompt() {
+  const location = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIos, setIsIos] = useState(false);
@@ -79,6 +81,9 @@ export function PwaInstallPrompt() {
     setShowIosGuide(false);
     localStorage.setItem("dastyor_pwa_dismissed", Date.now().toString());
   };
+
+  // Onboarding sahifasida (yo'li "/") PWA o'rnatish banneri ko'rinmasin
+  if (location.pathname === "/") return null;
 
   if (!showPrompt) return null;
 
