@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, RotateCcw, Volume2, VolumeX, Sparkles, Trophy } from "lucide-react";
+import { ChevronLeft, RotateCcw, Volume2, VolumeX, Sparkles, Copy, Check } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/game")({
   head: () => ({
     meta: [
-      { title: "Pichoq o'yini — Dastyor Food" },
-      { name: "description", content: "Pichoq o'yinini o'ynab, taomlarga chegirma promokodlarini yutib oling!" },
-      { property: "og:title", content: "Pichoq o'yini — Dastyor Food" },
+      { title: "Dastyor Food" },
+      { name: "description", content: "Pichoq o'yini — Dastyor Food mini o'yini" },
+      { property: "og:title", content: "Dastyor Food" },
     ],
   }),
   component: GamePage,
@@ -28,7 +28,7 @@ const angDiff = (a: number, b: number) => {
 
 const CONFIG = {
   rewardScore: 10,
-  rewardMessage: "BURGER10",
+  promoCode: "BURGER10",
 };
 
 interface Palette {
@@ -92,12 +92,12 @@ function drawKnifeBlade(ctx: CanvasRenderingContext2D, L: number) {
   const w = L * 0.18;
   const bl = L * 0.58;
 
-  // Blade gradient
+  // Steel blade
   const g = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
-  g.addColorStop(0, "#85939e");
+  g.addColorStop(0, "#73808a");
   g.addColorStop(0.42, "#ffffff");
-  g.addColorStop(0.58, "#dce5ea");
-  g.addColorStop(1, "#73808a");
+  g.addColorStop(0.58, "#e2e8f0");
+  g.addColorStop(1, "#64748b");
 
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -109,26 +109,26 @@ function drawKnifeBlade(ctx: CanvasRenderingContext2D, L: number) {
   ctx.fillStyle = g;
   ctx.fill();
 
-  // Full-length bevel
+  // Bevel center line
   ctx.beginPath();
   ctx.moveTo(0, 0);
   ctx.lineTo(0, bl);
-  ctx.strokeStyle = "rgba(0,0,0,0.22)";
-  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = "rgba(0,0,0,0.2)";
+  ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Guard
-  ctx.fillStyle = "#ffaa00";
-  ctx.fillRect(-w * 0.65, bl, w * 1.3, L * 0.06);
+  // Guard (Gold / Amber accent)
+  ctx.fillStyle = "#f59e0b";
+  ctx.fillRect(-w * 0.65, bl, w * 1.3, L * 0.05);
 
-  // Handle
+  // Handle (Apple Deep Red/Black)
   const hg = ctx.createLinearGradient(-w * 0.35, 0, w * 0.35, 0);
-  hg.addColorStop(0, "#991b1b");
-  hg.addColorStop(0.5, "#ef4444");
-  hg.addColorStop(1, "#7f1d1d");
+  hg.addColorStop(0, "#b91c1c");
+  hg.addColorStop(0.5, "#dc2626");
+  hg.addColorStop(1, "#991b1b");
 
   ctx.beginPath();
-  ctx.roundRect(-w * 0.35, bl + L * 0.06, w * 0.7, L - bl - L * 0.06, [0, 0, 4, 4]);
+  ctx.roundRect(-w * 0.35, bl + L * 0.05, w * 0.7, L - bl - L * 0.05, [0, 0, 4, 4]);
   ctx.fillStyle = hg;
   ctx.fill();
 }
@@ -171,12 +171,12 @@ class TargetObject {
     ctx.save();
     ctx.rotate(this.angle);
 
-    // Drop shadow
-    ctx.shadowColor = "rgba(0,0,0,0.4)";
-    ctx.shadowBlur = 16;
-    ctx.shadowOffsetY = 8;
+    // Realistic soft shadow
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetY = 10;
 
-    // Outer crust / ring
+    // Outer ring
     ctx.fillStyle = palette.ring;
     ctx.beginPath();
     ctx.arc(0, 0, R, 0, TAU);
@@ -190,7 +190,7 @@ class TargetObject {
     ctx.arc(0, 0, R * 0.92, 0, TAU);
     ctx.fill();
 
-    // Food decoration
+    // Food graphics
     if (palette.type === "donut") {
       ctx.fillStyle = palette.icing || "#f472b6";
       ctx.beginPath();
@@ -198,12 +198,11 @@ class TargetObject {
       ctx.fill();
 
       // Donut hole
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#09090b";
       ctx.beginPath();
       ctx.arc(0, 0, R * 0.28, 0, TAU);
       ctx.fill();
     } else if (palette.type === "burger") {
-      // Sesame seeds
       ctx.fillStyle = "#fef08a";
       for (let i = 0; i < 14; i++) {
         const a = (i * TAU) / 14 + 0.2;
@@ -213,7 +212,6 @@ class TargetObject {
         ctx.fill();
       }
     } else {
-      // Pizza slices & pepperoni
       ctx.strokeStyle = "rgba(0,0,0,0.15)";
       ctx.lineWidth = 2;
       for (let i = 0; i < 8; i++) {
@@ -244,13 +242,13 @@ class TargetObject {
     }
     ctx.restore();
 
-    ctx.restore(); // end rotation
+    ctx.restore();
 
-    // Highlight reflection
+    // Specular highlight
     const light = ctx.createRadialGradient(-R * 0.35, -R * 0.4, 2, 0, 0, R);
-    light.addColorStop(0, "rgba(255,255,255,0.3)");
+    light.addColorStop(0, "rgba(255,255,255,0.25)");
     light.addColorStop(0.5, "rgba(255,255,255,0)");
-    light.addColorStop(1, "rgba(0,0,0,0.25)");
+    light.addColorStop(1, "rgba(0,0,0,0.3)");
     ctx.fillStyle = light;
     ctx.beginPath();
     ctx.arc(0, 0, R, 0, TAU);
@@ -270,6 +268,7 @@ export function GamePage() {
   const [banner, setBanner] = useState<string | null>(null);
   const [rewardCode, setRewardCode] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -294,7 +293,7 @@ export function GamePage() {
       osc.start(t);
       osc.stop(t + dur);
     } catch {
-      // Audio not permitted yet
+      // Audio not permitted
     }
   };
 
@@ -336,9 +335,18 @@ export function GamePage() {
     setTimeout(() => setBanner(null), 1200);
   };
 
+  const copyPromo = () => {
+    if (!rewardCode) return;
+    navigator.clipboard.writeText(rewardCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   const startNewGame = () => {
     setGameOver(false);
     setRewardCode(null);
+    setCopied(false);
     const eng = engineRef.current;
     if (!eng) return;
     eng.score = 0;
@@ -438,7 +446,6 @@ export function GamePage() {
       const isClash = eng.target.knives.some((a) => angDiff(a, hitAngle) < DELTA);
 
       if (isClash) {
-        // Clash & Fail
         playTone(110, 0.35, "sawtooth", -80);
         eng.shake = 22;
         eng.bounce = new KnifeObject(
@@ -453,7 +460,6 @@ export function GamePage() {
         eng.state = "over";
         eng.timer = 0.8;
       } else {
-        // Successful hit
         playTone(160, 0.08, "square", -60);
         eng.target.knives.push(hitAngle);
         eng.flying = null;
@@ -462,12 +468,10 @@ export function GamePage() {
         setScore(eng.score);
 
         if (eng.remaining === 0) {
-          // Stage cleared
           playTone(440, 0.3, "sine", 440);
           eng.state = "clearing";
           eng.timer = 0.5;
 
-          // Break into shards
           const count = 22;
           for (let i = 0; i < count; i++) {
             const a = (i * TAU) / count;
@@ -491,7 +495,6 @@ export function GamePage() {
       const dt = Math.min((now - eng.last) / 1000, 1 / 30);
       eng.last = now;
 
-      // Update
       eng.cool = Math.max(0, eng.cool - dt);
       eng.shake *= Math.pow(0.0005, dt);
 
@@ -526,7 +529,6 @@ export function GamePage() {
         eng.timer -= dt;
         if (eng.timer <= 0) {
           if (eng.state === "clearing") {
-            // Next Stage
             eng.stage += 1;
             eng.cfg = stageConfig(eng.stage);
             eng.target.reset(eng.cfg.obstacles);
@@ -537,7 +539,6 @@ export function GamePage() {
             setKnivesCount({ total: eng.total, remaining: eng.remaining });
             triggerBanner(`${eng.stage}-Bosqich`);
           } else {
-            // Game Over
             setGameOver(true);
             const currentBest = parseInt(localStorage.getItem("dastyor_game_best") || "0", 10);
             if (eng.score > currentBest) {
@@ -545,13 +546,12 @@ export function GamePage() {
               setBestScore(eng.score);
             }
             if (eng.score >= CONFIG.rewardScore) {
-              setRewardCode(CONFIG.rewardMessage);
+              setRewardCode(CONFIG.promoCode);
             }
           }
         }
       }
 
-      // Draw
       ctx.setTransform(eng.dpr, 0, 0, eng.dpr, 0, 0);
       ctx.clearRect(0, 0, eng.w, eng.h);
 
@@ -605,27 +605,28 @@ export function GamePage() {
   }, []);
 
   return (
-    <div className="relative mx-auto flex h-dvh max-w-md flex-col overflow-hidden bg-[#0c131a] select-none text-white font-sans">
-      {/* iPhone Dynamic Island / Top Header */}
-      <header className="pt-safe relative z-20 flex items-center justify-between px-5 pt-3 pb-2">
+    <div className="relative mx-auto flex h-dvh max-w-md flex-col overflow-hidden bg-black select-none text-white font-sans">
+      {/* iOS Status Bar & Dynamic Island Header */}
+      <header className="pt-safe relative z-20 flex items-center justify-between px-4 pt-3 pb-2">
         <Link
           to="/home"
-          aria-label="Chiqish"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 active:scale-95 transition-all text-white/90"
+          aria-label="Orqaga"
+          className="flex h-9 items-center gap-1 px-2.5 rounded-full bg-white/10 active:bg-white/20 backdrop-blur-xl border border-white/10 transition-colors text-white"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5 -ml-1 text-primary" />
+          <span className="text-[13px] font-medium text-white/90">Menyu</span>
         </Link>
 
-        {/* HUD: Score & Stage in iPhone glass capsule */}
-        <div className="flex items-center gap-4 rounded-full bg-white/10 px-5 py-1.5 backdrop-blur-lg border border-white/15 shadow-lg">
-          <div className="text-center">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-white/60">Ball</span>
-            <p className="text-lg font-extrabold leading-none tracking-tight text-amber-400">{score}</p>
+        {/* Apple Capsule HUD */}
+        <div className="flex items-center gap-3 rounded-full bg-white/[0.08] px-4 py-1.5 backdrop-blur-2xl border border-white/10 shadow-sm">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[11px] font-medium text-white/50">Ball</span>
+            <span className="text-base font-bold text-white tabular-nums">{score}</span>
           </div>
-          <div className="h-6 w-px bg-white/20" />
-          <div className="text-center">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-white/60">Bosqich</span>
-            <p className="text-lg font-extrabold leading-none tracking-tight text-white">{stage}</p>
+          <div className="h-3 w-px bg-white/20" />
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[11px] font-medium text-white/50">Bosqich</span>
+            <span className="text-base font-bold text-primary tabular-nums">{stage}</span>
           </div>
         </div>
 
@@ -633,102 +634,120 @@ export function GamePage() {
           type="button"
           aria-label={soundEnabled ? "Ovozni o'chirish" : "Ovozni yoqish"}
           onClick={() => setSoundEnabled((v) => !v)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/10 active:scale-95 transition-all text-white/90"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 active:bg-white/20 backdrop-blur-xl border border-white/10 transition-colors text-white/80"
         >
-          {soundEnabled ? <Volume2 className="h-4 w-4 text-amber-400" /> : <VolumeX className="h-4 w-4 text-white/50" />}
+          {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 text-white/40" />}
         </button>
       </header>
 
-      {/* Main Game Canvas */}
+      {/* Main Game Surface */}
       <div className="relative flex-1 touch-none">
         <canvas ref={canvasRef} className="h-full w-full cursor-pointer touch-none" />
 
-        {/* Stage Clear Banner */}
+        {/* Stage Notification (iOS Banner) */}
         {banner && (
-          <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center animate-in zoom-in-95 duration-300">
-            <div className="rounded-full bg-white/15 border border-white/30 px-6 py-2 backdrop-blur-xl shadow-2xl">
-              <span className="font-display text-xl font-black tracking-wide text-white drop-shadow">
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center animate-in zoom-in-95 duration-200">
+            <div className="rounded-full bg-white/15 border border-white/25 px-6 py-2.5 backdrop-blur-2xl shadow-2xl">
+              <span className="text-lg font-bold tracking-tight text-white">
                 {banner}
               </span>
             </div>
           </div>
         )}
 
-        {/* Remaining Knives Counter (iPhone style left bar) */}
-        <div className="pointer-events-none absolute bottom-8 left-5 flex flex-col-reverse gap-1.5">
+        {/* iOS Vertical Knife Meter */}
+        <div className="pointer-events-none absolute bottom-6 left-4 flex flex-col-reverse gap-1.5 bg-white/5 p-1.5 rounded-full border border-white/10 backdrop-blur-md">
           {Array.from({ length: knivesCount.total }).map((_, idx) => (
             <div
               key={idx}
               className={cn(
-                "h-5 w-2 rounded-xs transition-all duration-200",
+                "h-4 w-1.5 rounded-full transition-all duration-300",
                 idx < knivesCount.remaining
-                  ? "bg-gradient-to-t from-amber-500 to-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.6)]"
-                  : "bg-white/15 scale-75 opacity-30",
+                  ? "bg-primary shadow-[0_0_6px_rgba(255,85,0,0.8)]"
+                  : "bg-white/10",
               )}
             />
           ))}
         </div>
       </div>
 
-      {/* Tap Instruction Indicator */}
-      <div className="pb-safe relative z-10 text-center pb-4 pointer-events-none">
-        <p className="text-xs font-semibold tracking-wide text-white/40 uppercase">
-          Ekranni bosing — Pichoq otiladi
+      {/* Apple Subtle Gesture Hint */}
+      <div className="pb-safe relative z-10 text-center pb-3 pointer-events-none">
+        <p className="text-[11px] font-medium tracking-wide text-white/30">
+          Otish uchun ekranga bosing
         </p>
       </div>
 
-      {/* iPhone Glass Panel: Game Over Modal */}
+      {/* iOS Native Action Sheet / Modal: Game Over */}
       {gameOver && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-xs rounded-[32px] border border-white/20 bg-gradient-to-b from-[#1e293b]/90 to-[#0f172a]/95 p-6 text-center shadow-2xl backdrop-blur-2xl">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 mb-4 shadow-inner">
-              <Trophy className="h-7 w-7" />
-            </div>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] bg-[#1c1c1e]/95 border-t sm:border border-white/15 p-6 text-center shadow-2xl backdrop-blur-3xl animate-in slide-in-from-bottom duration-300">
+            
+            {/* iOS Sheet Grabber on mobile */}
+            <div className="mx-auto -mt-2 mb-4 h-1 w-10 rounded-full bg-white/20 sm:hidden" />
 
-            <h2 className="font-display text-2xl font-black text-white">O'yin tugadi</h2>
+            <h3 className="text-xl font-bold tracking-tight text-white">Natija</h3>
+            <p className="mt-1 text-xs text-white/50">Ushbu urinishdagi ko'rsatkichlaringiz</p>
 
-            <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl bg-white/5 p-3 border border-white/10">
+            {/* Apple Grouped Inset Stats */}
+            <div className="mt-5 grid grid-cols-3 divide-x divide-white/10 overflow-hidden rounded-2xl bg-white/[0.06] border border-white/10 py-3">
               <div>
-                <span className="text-[10px] text-white/50 block font-medium">Ball</span>
-                <strong className="text-xl font-extrabold text-amber-400">{score}</strong>
-              </div>
-              <div className="border-x border-white/10">
-                <span className="text-[10px] text-white/50 block font-medium">Bosqich</span>
-                <strong className="text-xl font-extrabold text-white">{stage}</strong>
+                <span className="text-[11px] font-medium text-white/50">To'plangan</span>
+                <p className="mt-0.5 text-2xl font-bold tracking-tight text-white tabular-nums">{score}</p>
               </div>
               <div>
-                <span className="text-[10px] text-white/50 block font-medium">Rekord</span>
-                <strong className="text-xl font-extrabold text-emerald-400">{bestScore}</strong>
+                <span className="text-[11px] font-medium text-white/50">Bosqich</span>
+                <p className="mt-0.5 text-2xl font-bold tracking-tight text-primary tabular-nums">{stage}</p>
+              </div>
+              <div>
+                <span className="text-[11px] font-medium text-white/50">Eng yaxshi</span>
+                <p className="mt-0.5 text-2xl font-bold tracking-tight text-emerald-400 tabular-nums">{bestScore}</p>
               </div>
             </div>
 
-            {/* Special Reward Promo Code if score >= 10 */}
+            {/* iOS Promo Card */}
             {rewardCode && (
-              <div className="mt-4 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-3.5 animate-in slide-in-from-bottom duration-300">
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-amber-300 mb-1">
-                  <Sparkles className="h-4 w-4" /> Chegirma yutib oldingiz!
+              <div className="mt-4 rounded-2xl bg-white/[0.06] border border-primary/30 p-3.5 text-left">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Chegirma promokodi</span>
                 </div>
-                <div className="rounded-lg bg-black/40 px-3 py-1 font-mono text-sm font-black tracking-widest text-amber-400 border border-amber-400/30">
-                  {rewardCode}
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-black/40 px-3 py-2 border border-white/10">
+                  <span className="font-mono text-sm font-bold tracking-wider text-white">
+                    {rewardCode}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={copyPromo}
+                    className="flex items-center gap-1 rounded-lg bg-white/10 hover:bg-white/20 px-2 py-1 text-[11px] font-medium text-white transition-colors"
+                  >
+                    {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    <span>{copied ? "Nusxalandi" : "Nusxa olish"}</span>
+                  </button>
                 </div>
-                <p className="mt-1 text-[10px] text-white/60">Buyurtma berishda ushbu kodni ishlating</p>
+                <p className="mt-1.5 text-[10px] text-white/40">
+                  Buyurtma rasmiylashtirishda ushbu kod orqali chegirmaga ega bo'ling
+                </p>
               </div>
             )}
 
+            {/* Apple Action Buttons */}
             <div className="mt-6 flex flex-col gap-2.5">
               <Button
                 variant="unstyled"
                 size="unset"
                 onClick={startNewGame}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 font-bold text-black shadow-lg shadow-orange-500/25 active:scale-98 transition-transform"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-white shadow-md active:opacity-80 transition-opacity"
               >
-                <RotateCcw className="h-4 w-4 stroke-[2.5]" /> Qayta o'ynash
+                <RotateCcw className="h-4 w-4" />
+                <span>Qaytadan boshlash</span>
               </Button>
+
               <Link
                 to="/home"
-                className="flex h-11 w-full items-center justify-center rounded-2xl bg-white/10 text-xs font-bold text-white/80 hover:bg-white/15 active:scale-98 transition-all"
+                className="flex h-11 w-full items-center justify-center rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-sm font-medium text-white/90 active:opacity-80 transition-all"
               >
-                Menyuga qaytish
+                Asosiy menyuga qaytish
               </Link>
             </div>
           </div>
