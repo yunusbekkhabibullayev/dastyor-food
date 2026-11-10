@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { bottomNavItems } from "./BottomNav";
 
 describe("Navigation destinations", () => {
-  it("keeps exactly the four requested destinations in order", () => {
+  it("keeps the requested destinations in order with game in center", () => {
     expect(bottomNavItems.map((item) => item.to)).toEqual([
       "/home",
       "/favorites",
+      "/game",
       "/cart",
       "/profile",
     ]);

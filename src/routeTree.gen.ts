@@ -14,6 +14,7 @@ import { Route as AddressesRouteImport } from './routes/addresses'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as GameRouteImport } from './routes/game'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as LanguageRouteImport } from './routes/language'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -49,6 +50,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const FavoritesRoute = FavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GameRoute = GameRouteImport.update({
+  id: '/game',
+  path: '/game',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
+  '/game': typeof GameRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
   '/notifications': typeof NotificationsRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
+  '/game': typeof GameRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
   '/notifications': typeof NotificationsRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/favorites': typeof FavoritesRoute
+  '/game': typeof GameRoute
   '/home': typeof HomeRoute
   '/language': typeof LanguageRoute
   '/notifications': typeof NotificationsRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/favorites'
+    | '/game'
     | '/home'
     | '/language'
     | '/notifications'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/favorites'
+    | '/game'
     | '/home'
     | '/language'
     | '/notifications'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/favorites'
+    | '/game'
     | '/home'
     | '/language'
     | '/notifications'
@@ -225,6 +237,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   FavoritesRoute: typeof FavoritesRoute
+  GameRoute: typeof GameRoute
   HomeRoute: typeof HomeRoute
   LanguageRoute: typeof LanguageRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -273,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/favorites'
       fullPath: '/favorites'
       preLoaderRoute: typeof FavoritesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/game': {
+      id: '/game'
+      path: '/game'
+      fullPath: '/game'
+      preLoaderRoute: typeof GameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   FavoritesRoute: FavoritesRoute,
+  GameRoute: GameRoute,
   HomeRoute: HomeRoute,
   LanguageRoute: LanguageRoute,
   NotificationsRoute: NotificationsRoute,
