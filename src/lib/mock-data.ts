@@ -296,8 +296,18 @@ for (const r of restaurants) {
   r.tags = menuCategories.filter((c) => (menus[r.id] ?? []).some((m) => m[0] === c));
 }
 
-export const getRestaurant = (id: string) => restaurants.find((r) => r.id === id);
-export const getMenu = (id: string) => products.filter((p) => p.restaurantId === id);
+// Memoized lookups — same array reference on repeated calls, prevents useMemo invalidation
+const restaurantMap = new Map(restaurants.map((r) => [r.id, r]));
+const menuMap = new Map<string, Product[]>();
+for (const r of restaurants) {
+  menuMap.set(
+    r.id,
+    products.filter((p) => p.restaurantId === r.id),
+  );
+}
+
+export const getRestaurant = (id: string) => restaurantMap.get(id);
+export const getMenu = (id: string) => menuMap.get(id) ?? [];
 
 export const matches = (text: string, q: string) =>
   text.toLowerCase().includes(q.trim().toLowerCase());

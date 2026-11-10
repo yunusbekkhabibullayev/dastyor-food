@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Bike, ChevronLeft, Clock, MapPin, Star, Wallet } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import {
@@ -61,8 +61,20 @@ function RestaurantPage() {
   const [cat, setCat] = useState("Barchasi");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<Product | null>(null);
-  const shown = menu.filter(
-    (p) => (cat === "Barchasi" || p.category === cat) && (!q.trim() || matches(p.name, q)),
+
+  const handleOpen = useCallback((p: Product) => setOpen(p), []);
+  const handleClose = useCallback(() => setOpen(null), []);
+  const handleReset = useCallback(() => {
+    setQ("");
+    setCat("Barchasi");
+  }, []);
+
+  const shown = useMemo(
+    () =>
+      menu.filter(
+        (p) => (cat === "Barchasi" || p.category === cat) && (!q.trim() || matches(p.name, q)),
+      ),
+    [menu, cat, q],
   );
 
   return (
@@ -73,6 +85,9 @@ function RestaurantPage() {
           alt={r.name}
           width={800}
           height={400}
+          loading="eager"
+          fetchPriority="high"
+          decoding="sync"
           className="aspect-[16/9] w-full object-cover"
         />
         <div className="absolute inset-0 bg-splash" />
@@ -137,20 +152,17 @@ function RestaurantPage() {
         {shown.length === 0 ? (
           <EmptyState
             text="Menyuda bunday taom yo'q"
-            onReset={() => {
-              setQ("");
-              setCat("Barchasi");
-            }}
+            onReset={handleReset}
           />
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {shown.map((p) => (
-              <ProductCard key={p.id} p={p} onOpen={setOpen} />
+              <ProductCard key={p.id} p={p} onOpen={handleOpen} />
             ))}
           </div>
         )}
       </main>
-      <ProductSheet product={open} onClose={() => setOpen(null)} />
+      <ProductSheet product={open} onClose={handleClose} />
     </AppShell>
   );
 }

@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Heart } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { Chips, ProductCard, ProductSheet, RestaurantCard } from "@/components/app/food";
@@ -27,8 +27,18 @@ function FavoritesPage() {
   const ready = useHydrated() && !!s.ready;
   const [tab, setTab] = useState("Taomlar");
   const [open, setOpen] = useState<Product | null>(null);
-  const favProducts = products.filter((p) => s.liked.includes(p.id));
-  const favRestaurants = restaurants.filter((r) => s.likedRestaurants.includes(r.id));
+
+  const handleOpen = useCallback((p: Product) => setOpen(p), []);
+  const handleClose = useCallback(() => setOpen(null), []);
+
+  const favProducts = useMemo(
+    () => products.filter((p) => s.liked.includes(p.id)),
+    [s.liked],
+  );
+  const favRestaurants = useMemo(
+    () => restaurants.filter((r) => s.likedRestaurants.includes(r.id)),
+    [s.likedRestaurants],
+  );
   const empty = tab === "Taomlar" ? favProducts.length === 0 : favRestaurants.length === 0;
 
   return (
@@ -66,7 +76,7 @@ function FavoritesPage() {
       ) : tab === "Taomlar" ? (
         <main className="grid grid-cols-2 gap-3 px-5 pb-20">
           {favProducts.map((p) => (
-            <ProductCard key={p.id} p={p} onOpen={setOpen} />
+            <ProductCard key={p.id} p={p} onOpen={handleOpen} />
           ))}
         </main>
       ) : (
@@ -76,7 +86,7 @@ function FavoritesPage() {
           ))}
         </main>
       )}
-      <ProductSheet product={open} onClose={() => setOpen(null)} />
+      <ProductSheet product={open} onClose={handleClose} />
     </AppShell>
   );
 }

@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import {
@@ -10,7 +10,7 @@ import {
   RestaurantCard,
   SearchInput,
 } from "@/components/app/food";
-import { categories, matches, products, restaurants, type Product } from "@/lib/mock-data";
+import { categories, getMenu, matches, products, restaurants, type Product } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/restaurants/")({
   head: () => ({
@@ -37,22 +37,33 @@ function RestaurantsPage() {
   const [cat, setCat] = useState("Barchasi");
   const [open, setOpen] = useState<Product | null>(null);
 
+  const handleOpen = useCallback((p: Product) => setOpen(p), []);
+  const handleClose = useCallback(() => setOpen(null), []);
+  const handleReset = useCallback(() => {
+    setQ("");
+    setCat("Barchasi");
+  }, []);
+
   const shown = useMemo(
-    () =>
-      restaurants.filter(
+    () => {
+      const trimmed = q.trim();
+      return restaurants.filter(
         (r) =>
           (cat === "Barchasi" || r.tags.includes(cat as never)) &&
-          (!q.trim() ||
-            matches(r.name, q) ||
-            products.some((p) => p.restaurantId === r.id && matches(p.name, q))),
-      ),
+          (!trimmed ||
+            matches(r.name, trimmed) ||
+            getMenu(r.id).some((p) => matches(p.name, trimmed))),
+      );
+    },
     [q, cat],
   );
   const dishHits = useMemo(
-    () =>
-      q.trim()
-        ? products.filter((p) => matches(p.name, q) && (cat === "Barchasi" || p.category === cat))
-        : [],
+    () => {
+      const trimmed = q.trim();
+      return trimmed
+        ? products.filter((p) => matches(p.name, trimmed) && (cat === "Barchasi" || p.category === cat))
+        : [];
+    },
     [q, cat],
   );
 
@@ -75,12 +86,7 @@ function RestaurantsPage() {
       <main className="space-y-4 px-5 pb-20 pt-2">
         <p className="text-xs font-semibold text-muted-foreground">{shown.length} ta xona</p>
         {shown.length === 0 ? (
-          <EmptyState
-            onReset={() => {
-              setQ("");
-              setCat("Barchasi");
-            }}
-          />
+          <EmptyState onReset={handleReset} />
         ) : (
           shown.map((r) => <RestaurantCard key={r.id} r={r} />)
         )}
@@ -89,13 +95,13 @@ function RestaurantsPage() {
             <h2 className="mb-3 mt-2 font-display text-lg font-bold">Topilgan taomlar</h2>
             <div className="grid grid-cols-2 gap-3">
               {dishHits.map((p) => (
-                <ProductCard key={p.id} p={p} onOpen={setOpen} />
+                <ProductCard key={p.id} p={p} onOpen={handleOpen} />
               ))}
             </div>
           </section>
         )}
       </main>
-      <ProductSheet product={open} onClose={() => setOpen(null)} />
+      <ProductSheet product={open} onClose={handleClose} />
     </AppShell>
   );
 }

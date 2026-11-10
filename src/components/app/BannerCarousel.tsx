@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import bannerBurger from "@/assets/banner-burger.jpg";
 import pizza from "@/assets/pizza.jpg";
@@ -27,16 +27,29 @@ const slides = [
   },
 ];
 
-export function BannerCarousel() {
+export const BannerCarousel = memo(function BannerCarousel() {
   const [i, setI] = useState(0);
   const paused = useRef(false);
   const startX = useRef<number | null>(null);
+
   useEffect(() => {
+    const onVisibilityChange = () => {
+      paused.current = document.hidden;
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const t = setInterval(() => {
-      if (!paused.current) setI((v) => (v + 1) % slides.length);
+      if (!paused.current && !document.hidden) {
+        setI((v) => (v + 1) % slides.length);
+      }
     }, 4000);
-    return () => clearInterval(t);
+
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, []);
+
   return (
     <section
       className="relative overflow-hidden rounded-3xl bg-ink"
@@ -54,7 +67,7 @@ export function BannerCarousel() {
       }}
     >
       <div
-        className="flex transition-transform duration-500 ease-out"
+        className="flex transition-transform duration-500 ease-out will-change-transform"
         style={{ transform: `translateX(-${i * 100}%)` }}
       >
         {slides.map((s, k) => (
@@ -64,6 +77,9 @@ export function BannerCarousel() {
               alt=""
               width={1024}
               height={640}
+              loading={k === 0 ? "eager" : "lazy"}
+              fetchPriority={k === 0 ? "high" : "low"}
+              decoding={k === 0 ? "sync" : "async"}
               className="absolute inset-y-0 right-0 h-full w-3/4 object-cover"
             />
             <div className="absolute inset-0 bg-banner" />
@@ -101,4 +117,4 @@ export function BannerCarousel() {
       </div>
     </section>
   );
-}
+});

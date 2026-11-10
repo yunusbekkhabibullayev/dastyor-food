@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Search, ArrowRight, Star, Clock, ChevronRight, X } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,11 @@ function Home() {
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("Barchasi");
   const [open, setOpen] = useState<Product | null>(null);
+
+  const handleOpen = useCallback((p: Product) => setOpen(p), []);
+  const handleClose = useCallback(() => setOpen(null), []);
+  const handleClearQuery = useCallback(() => setQuery(""), []);
+  const handleCatChange = useCallback((c: string) => setCat(c), []);
 
   const q = query.trim().toLowerCase();
   const shownRestaurants = useMemo(
@@ -75,7 +80,7 @@ function Home() {
                 variant="unstyled"
                 size="unset"
                 aria-label="Tozalash"
-                onClick={() => setQuery("")}
+                onClick={handleClearQuery}
               >
                 <X className="h-4 w-4 text-muted-foreground" />
               </Button>
@@ -87,7 +92,7 @@ function Home() {
       <main className="space-y-6 px-5 pb-20">
         {!q && <BannerCarousel />}
 
-        <Chips items={categories} value={cat} onChange={setCat} />
+        <Chips items={categories} value={cat} onChange={handleCatChange} />
 
         <section>
           <SectionTitle title="Fast-food xonalar" link />
@@ -122,14 +127,14 @@ function Home() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {shownProducts.map((p) => (
-                <ProductCard key={p.id} p={p} onOpen={setOpen} />
+                <ProductCard key={p.id} p={p} onOpen={handleOpen} />
               ))}
             </div>
           )}
         </section>
       </main>
 
-      <ProductSheet product={open} onClose={() => setOpen(null)} />
+      <ProductSheet product={open} onClose={handleClose} />
     </AppShell>
   );
 }

@@ -213,6 +213,42 @@ export function useCart() {
   );
 }
 
+/** Targeted selector: only triggers re-renders when this specific product quantity changes */
+export function useCartItemQty(id: string) {
+  return useSyncExternalStore(
+    (f) => {
+      subs.add(f);
+      return () => subs.delete(f);
+    },
+    () => state.items[id] ?? 0,
+    () => 0,
+  );
+}
+
+/** Targeted selector: only triggers re-renders when this specific product like status changes */
+export function useIsProductLiked(id: string) {
+  return useSyncExternalStore(
+    (f) => {
+      subs.add(f);
+      return () => subs.delete(f);
+    },
+    () => state.liked.includes(id),
+    () => false,
+  );
+}
+
+/** Targeted selector: only triggers re-renders when this specific restaurant like status changes */
+export function useIsRestaurantLiked(id: string) {
+  return useSyncExternalStore(
+    (f) => {
+      subs.add(f);
+      return () => subs.delete(f);
+    },
+    () => state.likedRestaurants.includes(id),
+    () => false,
+  );
+}
+
 /** Demo status timeline: each stage lasts STAGE_MS after the order is placed. */
 export const orderStages = [
   "Buyurtma qabul qilindi",

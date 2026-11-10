@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import {
   Beef,
   Drumstick,
@@ -17,7 +17,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-import { cart, useCart } from "@/lib/cart-store";
+import {
+  cart,
+  useCart,
+  useCartItemQty,
+  useIsProductLiked,
+  useIsRestaurantLiked,
+} from "@/lib/cart-store";
 import {
   restaurants,
   formatDelivery,
@@ -163,7 +169,7 @@ export function RestaurantLogo({
   );
 }
 
-export function RestaurantCard({ r }: { r: Restaurant }) {
+export const RestaurantCard = memo(function RestaurantCard({ r }: { r: Restaurant }) {
   return (
     <Link
       to="/restaurants/$restaurantId"
@@ -175,6 +181,7 @@ export function RestaurantCard({ r }: { r: Restaurant }) {
           src={r.cover}
           alt={r.name}
           loading="lazy"
+          decoding="async"
           width={600}
           height={300}
           className="aspect-[2/1] w-full object-cover"
@@ -210,11 +217,16 @@ export function RestaurantCard({ r }: { r: Restaurant }) {
       </div>
     </Link>
   );
-}
+});
 
-export function LikeRestaurantButton({ id, className }: { id: string; className?: string }) {
-  const s = useCart();
-  const on = s.likedRestaurants.includes(id);
+export const LikeRestaurantButton = memo(function LikeRestaurantButton({
+  id,
+  className,
+}: {
+  id: string;
+  className?: string;
+}) {
+  const on = useIsRestaurantLiked(id);
   return (
     <Button
       variant="unstyled"
@@ -241,12 +253,17 @@ export function LikeRestaurantButton({ id, className }: { id: string; className?
       />
     </Button>
   );
-}
+});
 
-export function ProductCard({ p, onOpen }: { p: Product; onOpen: (p: Product) => void }) {
-  const s = useCart();
-  const qty = s.items[p.id] ?? 0;
-  const liked = s.liked.includes(p.id);
+export const ProductCard = memo(function ProductCard({
+  p,
+  onOpen,
+}: {
+  p: Product;
+  onOpen: (p: Product) => void;
+}) {
+  const qty = useCartItemQty(p.id);
+  const liked = useIsProductLiked(p.id);
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
@@ -321,7 +338,7 @@ export function ProductCard({ p, onOpen }: { p: Product; onOpen: (p: Product) =>
       </div>
     </article>
   );
-}
+});
 
 export function addToCart(p: Product, qty = 1) {
   if (cart.add(p.id, qty) === "conflict") {
