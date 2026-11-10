@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
+import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 import { Heart } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
