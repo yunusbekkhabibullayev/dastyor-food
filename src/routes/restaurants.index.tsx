@@ -94,8 +94,8 @@ function RestaurantsPage() {
           <section>
             <h2 className="mb-3 mt-2 font-display text-lg font-bold">Topilgan taomlar</h2>
             <div className="grid grid-cols-2 gap-3">
-              {dishHits.map((p) => (
-                <ProductCard key={p.id} p={p} onOpen={handleOpen} />
+              {dishHits.map((p, idx) => (
+                <ProductCard key={p.id} p={p} onOpen={handleOpen} priority={idx < 4} />
               ))}
             </div>
           </section>

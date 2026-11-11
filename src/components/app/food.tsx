@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   Beef,
   Drumstick,
@@ -258,13 +258,23 @@ export const LikeRestaurantButton = memo(function LikeRestaurantButton({
 export const ProductCard = memo(function ProductCard({
   p,
   onOpen,
+  priority = false,
 }: {
   p: Product;
   onOpen: (p: Product) => void;
+  priority?: boolean;
 }) {
   const qty = useCartItemQty(p.id);
   const liked = useIsProductLiked(p.id);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    // If the image is already cached or complete, immediately show it without skeleton delay
+    if (imgRef.current && imgRef.current.complete) {
+      setImageLoaded(true);
+    }
+  }, [p.image]);
 
   return (
     <article className="min-w-0 overflow-hidden rounded-3xl border border-border bg-card shadow-card">
@@ -281,15 +291,17 @@ export const ProductCard = memo(function ProductCard({
           aria-label={`${p.name} tafsilotlari`}
         >
           <img
+            ref={imgRef}
             src={p.image}
             alt={p.name}
-            loading="lazy"
-            decoding="async"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "low"}
+            decoding={priority ? "sync" : "async"}
             width={400}
             height={300}
             onLoad={() => setImageLoaded(true)}
             className={cn(
-              "aspect-[4/3] w-full object-cover transition-all duration-500",
+              "aspect-[4/3] w-full object-cover transition-all duration-300",
               imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95",
             )}
           />
@@ -398,8 +410,16 @@ export function ProductSheet({
 }) {
   const [qty, setQty] = useState(1);
   const [sheetImgLoaded, setSheetImgLoaded] = useState(false);
+  const sheetImgRef = useRef<HTMLImageElement | null>(null);
   const s = useCart();
   const liked = product ? s.liked.includes(product.id) : false;
+
+  useEffect(() => {
+    if (product && sheetImgRef.current?.complete) {
+      setSheetImgLoaded(true);
+    }
+  }, [product]);
+
   return (
     <Sheet
       open={!!product}
@@ -420,15 +440,17 @@ export function ProductSheet({
             <div className="relative w-full aspect-[16/10] overflow-hidden fb-skeleton">
               <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-20 h-1 w-10 rounded-full bg-white/70 backdrop-blur-md pointer-events-none" />
               <img
+                ref={sheetImgRef}
                 src={product.image}
                 alt={product.name}
-                loading="lazy"
-                decoding="async"
+                loading="eager"
+                fetchPriority="high"
+                decoding="sync"
                 width={800}
                 height={500}
                 onLoad={() => setSheetImgLoaded(true)}
                 className={cn(
-                  "h-full w-full object-cover transition-all duration-500",
+                  "h-full w-full object-cover transition-all duration-300",
                   sheetImgLoaded ? "opacity-100" : "opacity-0",
                 )}
               />

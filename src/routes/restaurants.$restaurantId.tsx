@@ -156,8 +156,8 @@ function RestaurantPage() {
           />
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {shown.map((p) => (
-              <ProductCard key={p.id} p={p} onOpen={handleOpen} />
+            {shown.map((p, idx) => (
+              <ProductCard key={p.id} p={p} onOpen={handleOpen} priority={idx < 4} />
             ))}
           </div>
         )}

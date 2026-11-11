@@ -75,8 +75,8 @@ function FavoritesPage() {
         </div>
       ) : tab === "Taomlar" ? (
         <main className="grid grid-cols-2 gap-3 px-5 pb-20">
-          {favProducts.map((p) => (
-            <ProductCard key={p.id} p={p} onOpen={handleOpen} />
+          {favProducts.map((p, idx) => (
+            <ProductCard key={p.id} p={p} onOpen={handleOpen} priority={idx < 4} />
           ))}
         </main>
       ) : (

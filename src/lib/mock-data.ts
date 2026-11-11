@@ -55,14 +55,11 @@ export type Restaurant = {
   tags: MenuCategory[];
 };
 
-const BURGER_PHOTO =
-  "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80";
-const ORANGE_JUICE =
-  "https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80";
-const LEMONADE =
-  "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80";
-const MILKSHAKE =
-  "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=800&q=80";
+// Fast local bundled assets — 0ms network latency and 100% reliable in PWA offline mode
+const BURGER_PHOTO = splash;
+const ORANGE_JUICE = drink;
+const LEMONADE = drink;
+const MILKSHAKE = drink;
 
 function getProductImage(category: MenuCategory, name: string, i: number): string {
   const n = name.toLowerCase();

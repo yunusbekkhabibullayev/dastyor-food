@@ -137,13 +137,18 @@ function RootComponent() {
     cart.hydrate();
     profileSettings.hydrate();
 
-    // Register Service Worker for PWA
+    // Register Service Worker for PWA immediately
     if ("serviceWorker" in navigator && process.env.NODE_ENV !== "test") {
-      window.addEventListener("load", () => {
+      const registerSW = () => {
         navigator.serviceWorker.register("/sw.js").catch((err) => {
           console.warn("ServiceWorker registration failed: ", err);
         });
-      });
+      };
+      if (document.readyState === "complete") {
+        registerSW();
+      } else {
+        window.addEventListener("load", registerSW);
+      }
     }
   }, []);
   const { language } = useProfileSettings();

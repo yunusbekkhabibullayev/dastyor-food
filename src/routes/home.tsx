@@ -126,8 +126,8 @@ function Home() {
             <Empty />
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              {shownProducts.map((p) => (
-                <ProductCard key={p.id} p={p} onOpen={handleOpen} />
+              {shownProducts.map((p, idx) => (
+                <ProductCard key={p.id} p={p} onOpen={handleOpen} priority={idx < 4} />
               ))}
             </div>
           )}
