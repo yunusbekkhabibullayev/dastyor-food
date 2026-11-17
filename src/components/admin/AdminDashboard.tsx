@@ -6,18 +6,16 @@ import {
   Clock,
   Store,
   UtensilsCrossed,
-  ArrowUpRight,
   Plus,
   RefreshCw,
-  CheckCircle2,
-  Bike,
   Sparkles,
   Phone,
   MapPin,
   Calendar,
-  Layers,
-  Database,
+  Truck,
+  Settings,
   ArrowRight,
+  Eye,
 } from "lucide-react";
 import {
   getFirestoreOrders,
@@ -25,12 +23,11 @@ import {
   getFirestoreRestaurants,
   subscribeToFirestoreOrders,
   updateFirestoreOrderStatus,
-  seedFirestoreData,
 } from "@/lib/firebase-data";
 import { isFirebaseConfigured, type OrderDoc } from "@/lib/firebase";
 import { restaurants as mockRestaurants, products as mockProducts, formatSom } from "@/lib/mock-data";
 import { cart } from "@/lib/cart-store";
-import { Button } from "@/components/ui/button";
+import { AdminSalesChart } from "./AdminSalesChart";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +37,6 @@ export function AdminDashboard() {
   const [restaurantsCount, setRestaurantsCount] = useState(mockRestaurants.length);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [seeding, setSeeding] = useState(false);
 
   // Live date & time formatted as yyyy-mm-dd HH:MM
   const formatDateTime = (d = new Date()) => {
@@ -108,22 +104,6 @@ export function AdminDashboard() {
     };
   }, []);
 
-  const handleSeed = async () => {
-    setSeeding(true);
-    try {
-      const res = await seedFirestoreData();
-      if (res.success) {
-        toast.success("Baza muvaffaqiyatli to'ldirildi!");
-        setProductsCount(res.productsCount);
-        setRestaurantsCount(res.restaurantsCount);
-      } else {
-        toast.error(res.message);
-      }
-    } finally {
-      setSeeding(false);
-    }
-  };
-
   const handleStatusChange = async (orderId: string, newStatus: OrderDoc["status"]) => {
     try {
       if (isFirebaseConfigured) {
@@ -140,8 +120,13 @@ export function AdminDashboard() {
   };
 
   // Calculations
-  const todayRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-  const pendingOrders = orders.filter((o) => o.status === "new" || o.status === "preparing").length;
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const pendingCount = orders.filter((o) => o.status === "new").length;
+  const preparingCount = orders.filter((o) => o.status === "preparing").length;
+  const deliveringCount = orders.filter((o) => o.status === "delivering").length;
+  const deliveredCount = orders.filter((o) => o.status === "delivered").length;
+  const cancelledCount = orders.filter((o) => o.status === "cancelled").length;
+  const totalOrdersCount = Math.max(1, orders.length);
 
   const statCards = [
     {
@@ -149,97 +134,95 @@ export function AdminDashboard() {
       title: "Buyurtmalar",
       value: `${orders.length} ta`,
       icon: ShoppingBag,
-      accentBg: "bg-blue-50 dark:bg-blue-500/10",
-      accentText: "text-blue-600 dark:text-blue-400",
-      accentBorder: "border-blue-100 dark:border-blue-500/20",
-      footer: "Barcha tushgan buyurtmalar",
+      accentBg: "bg-blue-50",
+      accentText: "text-blue-600",
+      accentBorder: "border-blue-100",
+      footer: "Barcha buyurtmalar ro'yxati →",
       to: "/admin/orders",
     },
     {
       id: "revenue",
       title: "Jami Tushum",
-      value: formatSom(todayRevenue),
+      value: formatSom(totalRevenue),
       icon: TrendingUp,
-      accentBg: "bg-emerald-50 dark:bg-emerald-500/10",
-      accentText: "text-emerald-600 dark:text-emerald-400",
-      accentBorder: "border-emerald-100 dark:border-emerald-500/20",
-      footer: "Yetkazilgan & faol hisob",
+      accentBg: "bg-emerald-50",
+      accentText: "text-emerald-600",
+      accentBorder: "border-emerald-100",
+      footer: "Kassadagi umumiy hisob",
       to: "/admin/orders",
     },
     {
-      id: "pending",
-      title: "Jarayonda",
-      value: `${pendingOrders} ta yangi`,
+      id: "pending_orders",
+      title: "Kutilmoqda",
+      value: `${pendingCount} ta yangi`,
       icon: Clock,
-      accentBg: "bg-amber-50 dark:bg-amber-500/10",
-      accentText: "text-amber-600 dark:text-amber-400",
-      accentBorder: "border-amber-100 dark:border-amber-500/20",
+      accentBg: "bg-amber-50",
+      accentText: "text-amber-600",
+      accentBorder: "border-amber-100",
       footer: "Ko'rib chiqish zarur ⚡",
       to: "/admin/orders",
     },
     {
-      id: "catalog",
-      title: "Katalog & Xonalar",
-      value: `${restaurantsCount} xona / ${productsCount} taom`,
+      id: "products",
+      title: "Taomlar Katalogi",
+      value: `${productsCount} ta tovar`,
       icon: Sparkles,
-      accentBg: "bg-purple-50 dark:bg-purple-500/10",
-      accentText: "text-purple-600 dark:text-purple-400",
-      accentBorder: "border-purple-100 dark:border-purple-500/20",
-      footer: "Menyuni boshqarish →",
+      accentBg: "bg-purple-50",
+      accentText: "text-purple-600",
+      accentBorder: "border-purple-100",
+      footer: `${restaurantsCount} ta faol xona →`,
       to: "/admin/products",
     },
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-300">
-      {/* ─── Hero Greeting & Status Bar (Exact Online Store Structure) ─── */}
-      <div className="bg-card border border-border rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
+      {/* ─── Hero Greeting & Status Bar (Exact reference style) ─── */}
+      <div className="bg-white border border-gray-150 rounded-3xl p-5 sm:p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden text-left">
         {/* Subtle decorative background gradient */}
-        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-primary/5 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-rose-50/50 via-transparent to-transparent pointer-events-none" />
 
-        <div className="relative z-10 space-y-1.5 text-left">
+        <div className="relative z-10 space-y-2 text-left">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-500/20 shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Dastyor Food Faol</span>
+              <span>Do'kon Faol</span>
             </span>
-            <span className="text-border hidden sm:inline">•</span>
-            <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1.5 bg-muted/50 px-2.5 py-0.5 rounded-full border border-border font-mono shadow-2xs">
-              <Calendar className="w-3.5 h-3.5 text-muted-foreground/70" />
+            <span className="text-gray-300 hidden sm:inline">•</span>
+            <span className="text-[11px] font-bold text-gray-600 flex items-center gap-1.5 bg-gray-50 px-2.5 py-0.5 rounded-full border border-gray-150 font-mono shadow-2xs">
+              <Calendar className="w-3.5 h-3.5 text-gray-400" />
               <span>{currentDateTime}</span>
             </span>
           </div>
 
-          <div className="flex flex-col text-left pt-1">
-            <span className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">
+          <div className="flex flex-col text-left">
+            <span className="text-xs sm:text-sm font-extrabold text-gray-400 uppercase tracking-wider">
               Xush kelibsiz,
             </span>
-            <h2 className="text-xl sm:text-2xl font-display font-black text-foreground tracking-tight leading-tight mt-0.5">
-              <span className="text-primary">Admin</span> 👋
+            <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight leading-tight mt-0.5">
+              <span className="text-[#CC1122]">Admin</span> 👋
             </h2>
           </div>
-          <p className="text-xs text-muted-foreground font-medium">
-            Fast-food buyurtmalari, savdo ko'rsatkichlari va tushumlar hisoboti.
+          <p className="text-xs text-gray-500 font-medium">
+            Fast-food buyurtmalari, savdo ko'rsatkichlari va tushumlar hisoboti
           </p>
         </div>
 
         {/* 2 Equal Columns Action Buttons */}
         <div className="relative z-10 grid grid-cols-2 gap-2.5 w-full sm:w-auto self-stretch md:self-auto shrink-0">
-          <Button
+          <button
             type="button"
-            variant="unstyled"
-            size="unset"
             onClick={() => loadData(true)}
             disabled={refreshing}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-muted active:scale-95 text-foreground border border-border rounded-2xl text-xs font-bold transition-all shadow-2xs cursor-pointer min-h-[42px]"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-[#FFF0F1] hover:text-[#CC1122] active:scale-95 text-gray-700 border border-gray-200 rounded-2xl text-xs font-bold transition-all shadow-2xs cursor-pointer min-h-[42px]"
           >
-            <RefreshCw className={cn("w-4 h-4 text-muted-foreground shrink-0", refreshing && "animate-spin text-primary")} />
+            <RefreshCw className={cn("w-4 h-4 text-gray-500 shrink-0", refreshing && "animate-spin text-[#CC1122]")} />
             <span className="truncate">Yangilash</span>
-          </Button>
+          </button>
 
           <Link
             to="/admin/products"
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary hover:bg-primary/90 active:scale-95 text-primary-foreground rounded-2xl text-xs font-bold shadow-md shadow-primary/20 transition-all cursor-pointer min-h-[42px]"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#CC1122] hover:bg-[#b00f1e] active:scale-95 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-[#CC1122]/20 transition-all cursor-pointer min-h-[42px]"
           >
             <Plus className="w-4 h-4 shrink-0 stroke-[2.5]" />
             <span className="truncate">+ Yangi Taom</span>
@@ -247,39 +230,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* Database Sync Notification (Agar baza bo'sh bo'lsa) */}
-      {isFirebaseConfigured && productsCount === mockProducts.length && (
-        <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-primary/5 p-4 sm:p-5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-            <div className="flex items-start gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-xs">
-                <Database className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-display font-bold text-xs sm:text-sm">
-                  Firestore bazasini ma'lumotlar bilan to'ldirish
-                </h4>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Evos, Max Way va barcha taomlarni bulutli bazaga bir bosishda yuklang.
-                </p>
-              </div>
-            </div>
-
-            <Button
-              variant="unstyled"
-              size="unset"
-              onClick={handleSeed}
-              disabled={seeding}
-              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all shrink-0"
-            >
-              <RefreshCw className={cn("h-3.5 w-3.5", seeding && "animate-spin")} />
-              <span>{seeding ? "Yuklanmoqda..." : "Bazani sinxronlash"}</span>
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* ─── 4 Top KPI Stat Cards (2 Columns on Mobile, 4 Columns on Desktop) ─── */}
+      {/* ─── 4 Top KPI Stat Cards (2 Columns Mobile, 4 Columns Desktop) ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((card) => {
           const Icon = card.icon;
@@ -287,15 +238,15 @@ export function AdminDashboard() {
             <Link
               key={card.id}
               to={card.to}
-              className="bg-card p-4 sm:p-5 rounded-3xl border border-border shadow-2xs hover:shadow-md hover:border-primary/40 transition-all duration-200 flex flex-col justify-between cursor-pointer group active:scale-[0.98]"
+              className="bg-white p-4 sm:p-5 rounded-3xl border border-gray-150 shadow-2xs hover:shadow-md hover:border-gray-250 transition-all duration-200 flex flex-col justify-between cursor-pointer group active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">
+                <span className="text-[11px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider group-hover:text-gray-600 transition-colors">
                   {card.title}
                 </span>
                 <div
                   className={cn(
-                    "w-8 h-8 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center border shadow-2xs transition-transform group-hover:scale-105",
+                    "w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center border shadow-2xs group-hover:scale-105 transition-transform",
                     card.accentBg,
                     card.accentText,
                     card.accentBorder,
@@ -305,12 +256,12 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="mt-2.5 sm:mt-4 text-left">
-                <span className="text-lg sm:text-2xl font-display font-extrabold text-foreground leading-tight block tracking-tight">
+              <div className="mt-3 sm:mt-4 text-left">
+                <span className="text-xl sm:text-2xl font-black text-gray-900 leading-tight block tracking-tight">
                   {card.value}
                 </span>
                 {card.footer && (
-                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground group-hover:text-primary mt-2 border-t pt-2 border-border/70 truncate transition-colors flex items-center justify-between">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-gray-400 group-hover:text-[#CC1122] mt-2 border-t pt-2 border-gray-100 truncate transition-colors flex items-center justify-between">
                     <span>{card.footer}</span>
                   </p>
                 )}
@@ -320,177 +271,346 @@ export function AdminDashboard() {
         })}
       </div>
 
-      {/* ─── Grid: So'nggi Buyurtmalar va Xonalar ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Chap 2 ustun: Jonli Buyurtmalar Ro'yxati */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-border/70 pb-3">
+      {/* ─── Interactive Sales Dynamic Chart for Store Owner ─── */}
+      <AdminSalesChart orders={orders} />
+
+      {/* ─── Orders Distribution & Quick Actions Grid ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left: Orders Status Health Bar (2 columns on lg) */}
+        <div className="lg:col-span-2 bg-white border border-gray-150 rounded-3xl p-5 shadow-2xs space-y-4 text-left">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-primary stroke-[2.2]" />
-              <h3 className="font-display font-extrabold text-foreground text-sm sm:text-base">
-                Jonli Buyurtmalar
+              <TrendingUp className="w-5 h-5 text-[#CC1122] stroke-[2.2]" />
+              <h3 className="font-extrabold text-gray-900 text-sm sm:text-base">
+                Buyurtmalar Taqsimoti
               </h3>
             </div>
             <Link
               to="/admin/orders"
-              className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+              className="text-xs font-black text-[#CC1122] hover:underline flex items-center gap-1 cursor-pointer"
             >
-              <span>Barchasi ({orders.length})</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
+              <span>Barchasi</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </Link>
           </div>
 
-          {orders.length === 0 ? (
-            <div className="py-12 text-center rounded-2xl bg-muted/20 border border-dashed border-border/70">
-              <ShoppingBag className="mx-auto h-10 w-10 text-muted-foreground/50" />
-              <p className="mt-2 font-display font-bold text-sm">Hozircha buyurtmalar yo'q</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Mijoz ilovadan buyurtma berganda bu yerda avtomatik paydo bo'ladi.
-              </p>
+          {/* Segmented multi-color progress bar */}
+          <div className="space-y-2">
+            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden flex gap-0.5 p-0.5">
+              <div
+                style={{ width: `${(pendingCount / totalOrdersCount) * 100}%` }}
+                className="bg-amber-500 rounded-l-full transition-all duration-500"
+                title={`Kutilmoqda: ${pendingCount}`}
+              />
+              <div
+                style={{ width: `${(preparingCount / totalOrdersCount) * 100}%` }}
+                className="bg-blue-500 transition-all duration-500"
+                title={`Tayyorlanmoqda: ${preparingCount}`}
+              />
+              <div
+                style={{ width: `${(deliveringCount / totalOrdersCount) * 100}%` }}
+                className="bg-indigo-500 transition-all duration-500"
+                title={`Yo'lda: ${deliveringCount}`}
+              />
+              <div
+                style={{ width: `${(deliveredCount / totalOrdersCount) * 100}%` }}
+                className="bg-emerald-500 transition-all duration-500"
+                title={`Yetkazildi: ${deliveredCount}`}
+              />
+              <div
+                style={{ width: `${(cancelledCount / totalOrdersCount) * 100}%` }}
+                className="bg-rose-500 rounded-r-full transition-all duration-500"
+                title={`Bekor qilindi: ${cancelledCount}`}
+              />
             </div>
-          ) : (
-            <div className="space-y-3">
-              {orders.slice(0, 5).map((order) => {
+          </div>
+
+          {/* 5 Status Pills Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+            <Link
+              to="/admin/orders"
+              className="p-2.5 rounded-2xl bg-amber-50/70 border border-amber-200/70 flex flex-col justify-between cursor-pointer hover:bg-amber-100/70 transition-colors"
+            >
+              <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Kutilmoqda</span>
+              <span className="text-sm sm:text-base font-black text-amber-900 mt-1">{pendingCount} ta</span>
+            </Link>
+
+            <Link
+              to="/admin/orders"
+              className="p-2.5 rounded-2xl bg-blue-50/70 border border-blue-200/70 flex flex-col justify-between cursor-pointer hover:bg-blue-100/70 transition-colors"
+            >
+              <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider">Tayyorlanmoqda</span>
+              <span className="text-sm sm:text-base font-black text-blue-900 mt-1">{preparingCount} ta</span>
+            </Link>
+
+            <Link
+              to="/admin/orders"
+              className="p-2.5 rounded-2xl bg-indigo-50/70 border border-indigo-200/70 flex flex-col justify-between cursor-pointer hover:bg-indigo-100/70 transition-colors"
+            >
+              <span className="text-[10px] font-bold text-indigo-800 uppercase tracking-wider">Yo'lda</span>
+              <span className="text-sm sm:text-base font-black text-indigo-900 mt-1">{deliveringCount} ta</span>
+            </Link>
+
+            <Link
+              to="/admin/orders"
+              className="p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 flex flex-col justify-between cursor-pointer hover:bg-emerald-100/70 transition-colors"
+            >
+              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Yetkazildi</span>
+              <span className="text-sm sm:text-base font-black text-emerald-900 mt-1">{deliveredCount} ta</span>
+            </Link>
+
+            <Link
+              to="/admin/orders"
+              className="p-2.5 rounded-2xl bg-rose-50/70 border border-rose-200/70 flex flex-col justify-between cursor-pointer hover:bg-rose-100/70 transition-colors"
+            >
+              <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider">Bekor qilindi</span>
+              <span className="text-sm sm:text-base font-black text-rose-900 mt-1">{cancelledCount} ta</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: Quick Action Shortcuts (1 column on lg) */}
+        <div className="bg-white border border-gray-150 rounded-3xl p-5 shadow-2xs space-y-3 flex flex-col justify-between text-left">
+          <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+            <Sparkles className="w-5 h-5 text-[#CC1122] stroke-[2.2]" />
+            <h3 className="font-extrabold text-gray-900 text-sm sm:text-base">
+              Tezkor Amallar
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <Link
+              to="/admin/products"
+              className="p-3 bg-gray-50 hover:bg-[#FFF0F1] hover:text-[#CC1122] border border-gray-200 hover:border-[#FFE4E6] rounded-2xl text-left transition-all active:scale-95 cursor-pointer group flex items-center gap-2.5"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white border border-gray-200/80 group-hover:border-[#FFE4E6] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-[#FFF0F1] transition-colors">
+                <UtensilsCrossed className="w-4 h-4 text-gray-600 group-hover:text-[#CC1122] transition-colors stroke-[2.2]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-extrabold text-gray-900 group-hover:text-[#CC1122] block leading-tight truncate">Tovarlar</span>
+                <span className="text-[10px] text-gray-400 font-medium block mt-0.5 truncate">Katalog</span>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/orders"
+              className="p-3 bg-gray-50 hover:bg-[#FFF0F1] hover:text-[#CC1122] border border-gray-200 hover:border-[#FFE4E6] rounded-2xl text-left transition-all active:scale-95 cursor-pointer group flex items-center gap-2.5"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white border border-gray-200/80 group-hover:border-[#FFE4E6] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-[#FFF0F1] transition-colors">
+                <Truck className="w-4 h-4 text-gray-600 group-hover:text-[#CC1122] transition-colors stroke-[2.2]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-extrabold text-gray-900 group-hover:text-[#CC1122] block leading-tight truncate">Buyurtmalar</span>
+                <span className="text-[10px] text-gray-400 font-medium block mt-0.5 truncate">Yetkazish</span>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/restaurants"
+              className="p-3 bg-gray-50 hover:bg-[#FFF0F1] hover:text-[#CC1122] border border-gray-200 hover:border-[#FFE4E6] rounded-2xl text-left transition-all active:scale-95 cursor-pointer group flex items-center gap-2.5"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white border border-gray-200/80 group-hover:border-[#FFE4E6] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-[#FFF0F1] transition-colors">
+                <Store className="w-4 h-4 text-gray-600 group-hover:text-[#CC1122] transition-colors stroke-[2.2]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-extrabold text-gray-900 group-hover:text-[#CC1122] block leading-tight truncate">Xonalar</span>
+                <span className="text-[10px] text-gray-400 font-medium block mt-0.5 truncate">Restoranlar</span>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/settings"
+              className="p-3 bg-gray-50 hover:bg-[#FFF0F1] hover:text-[#CC1122] border border-gray-200 hover:border-[#FFE4E6] rounded-2xl text-left transition-all active:scale-95 cursor-pointer group flex items-center gap-2.5"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white border border-gray-200/80 group-hover:border-[#FFE4E6] flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-[#FFF0F1] transition-colors">
+                <Settings className="w-4 h-4 text-gray-600 group-hover:text-[#CC1122] transition-colors stroke-[2.2]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-extrabold text-gray-900 group-hover:text-[#CC1122] block leading-tight truncate">Sozlamalar</span>
+                <span className="text-[10px] text-gray-400 font-medium block mt-0.5 truncate">Baza & Bot</span>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Recent Orders Section (Responsive Dual-View) ─── */}
+      <div className="bg-white border border-gray-150 rounded-3xl shadow-2xs overflow-hidden text-left">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5 text-[#CC1122] shrink-0 stroke-[2.2]" />
+            <h3 className="font-extrabold text-gray-900 text-sm sm:text-base">So'nggi Buyurtmalar</h3>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#FFF0F1] text-[#CC1122] border border-[#FFE4E6]">
+              {orders.length} ta
+            </span>
+          </div>
+          <Link
+            to="/admin/orders"
+            className="text-xs font-black text-[#CC1122] flex items-center gap-1 hover:text-[#990011] transition-colors cursor-pointer"
+          >
+            <span>Barchasi</span>
+            <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+          </Link>
+        </div>
+
+        {orders.length > 0 ? (
+          <>
+            {/* Desktop Table View (Hidden on mobile) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/80 border-b border-gray-100 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">
+                    <th className="py-3 px-4">Buyurtma #</th>
+                    <th className="py-3 px-4">Mijoz</th>
+                    <th className="py-3 px-4">Tarkib</th>
+                    <th className="py-3 px-4">Summa</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Amal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs">
+                  {orders.slice(0, 6).map((order) => {
+                    const isNew = order.status === "new";
+                    const isPreparing = order.status === "preparing";
+
+                    return (
+                      <tr key={order.id} className="hover:bg-gray-50/60 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-bold text-gray-900">
+                          {order.id}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <p className="font-bold text-gray-900">{order.customer?.name || "Mijoz"}</p>
+                          <p className="text-[11px] text-gray-400">{order.customer?.phone}</p>
+                        </td>
+                        <td className="py-3.5 px-4 max-w-xs truncate text-gray-600">
+                          {order.lines.map((l) => `${l.qty}x ${l.name}`).join(", ")}
+                        </td>
+                        <td className="py-3.5 px-4 font-black text-gray-900">
+                          {formatSom(order.total)}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={cn(
+                              "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-block",
+                              isNew && "bg-amber-50 text-amber-700 border border-amber-200",
+                              isPreparing && "bg-blue-50 text-blue-700 border border-blue-200",
+                              order.status === "delivering" && "bg-purple-50 text-purple-700 border border-purple-200",
+                              order.status === "delivered" && "bg-emerald-50 text-emerald-700 border border-emerald-200",
+                              order.status === "cancelled" && "bg-rose-50 text-rose-700 border border-rose-200",
+                            )}
+                          >
+                            {order.status === "new"
+                              ? "Kutilmoqda"
+                              : order.status === "preparing"
+                                ? "Tayyorlanmoqda"
+                                : order.status === "delivering"
+                                  ? "Yo'lda"
+                                  : order.status === "delivered"
+                                    ? "Yetkazildi"
+                                    : "Bekor qilindi"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          {isNew && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(order.id, "preparing")}
+                              className="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] transition-all cursor-pointer shadow-2xs"
+                            >
+                              Qabul qilish
+                            </button>
+                          )}
+                          {isPreparing && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(order.id, "delivered")}
+                              className="px-2.5 py-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] transition-all cursor-pointer shadow-2xs"
+                            >
+                              Yetkazildi
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View (Visible only on mobile) */}
+            <div className="sm:hidden divide-y divide-gray-100 p-3 space-y-3">
+              {orders.slice(0, 6).map((order) => {
                 const isNew = order.status === "new";
                 const isPreparing = order.status === "preparing";
-                const isDelivered = order.status === "delivered";
 
                 return (
-                  <div
-                    key={order.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border/80 p-3.5 sm:p-4 hover:border-primary/40 transition-colors bg-card shadow-2xs"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-xs font-extrabold text-foreground">
-                          {order.id}
-                        </span>
-                        <span
-                          className={cn(
-                            "rounded-full px-2 py-0.5 text-[9px] font-bold uppercase",
-                            isNew && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
-                            isPreparing && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
-                            isDelivered && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
-                            order.status === "cancelled" && "bg-red-500/10 text-red-600",
-                          )}
-                        >
-                          {order.status === "new"
-                            ? "Yangi"
-                            : order.status === "preparing"
-                              ? "Tayyorlanmoqda"
-                              : order.status === "delivering"
-                                ? "Yo'lda"
-                                : order.status === "delivered"
-                                  ? "Yetkazildi"
-                                  : "Bekor qilindi"}
-                        </span>
-                      </div>
-
-                      <p className="text-xs font-semibold text-foreground truncate">
-                        {order.customer?.name || "Mijoz"} ·{" "}
-                        <span className="text-muted-foreground font-normal">
-                          {order.lines.map((l) => `${l.qty}x ${l.name}`).join(", ")}
-                        </span>
-                      </p>
-
-                      <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Phone className="h-3 w-3 text-primary" />
-                          {order.customer?.phone}
-                        </span>
-                        <span className="flex items-center gap-1 truncate max-w-[180px]">
-                          <MapPin className="h-3 w-3 text-primary" />
-                          {order.customer?.address}
-                        </span>
-                      </div>
+                  <div key={order.id} className="pt-3 first:pt-0 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-xs text-gray-900">{order.id}</span>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
+                          isNew && "bg-amber-50 text-amber-700 border border-amber-200",
+                          isPreparing && "bg-blue-50 text-blue-700 border border-blue-200",
+                          order.status === "delivering" && "bg-purple-50 text-purple-700 border border-purple-200",
+                          order.status === "delivered" && "bg-emerald-50 text-emerald-700 border border-emerald-200",
+                          order.status === "cancelled" && "bg-rose-50 text-rose-700 border border-rose-200",
+                        )}
+                      >
+                        {order.status === "new"
+                          ? "Kutilmoqda"
+                          : order.status === "preparing"
+                            ? "Tayyorlanmoqda"
+                            : order.status === "delivering"
+                              ? "Yo'lda"
+                              : order.status === "delivered"
+                                ? "Yetkazildi"
+                                : "Bekor qilindi"}
+                      </span>
                     </div>
 
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-border/50">
-                      <span className="font-display font-extrabold text-sm text-foreground">
+                    <div className="text-xs">
+                      <p className="font-bold text-gray-900">{order.customer?.name || "Mijoz"}</p>
+                      <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">
+                        {order.lines.map((l) => `${l.qty}x ${l.name}`).join(", ")}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="font-black text-sm text-[#CC1122]">
                         {formatSom(order.total)}
                       </span>
 
-                      {/* Tezkor status almashtirish tugmalari */}
                       {isNew && (
-                        <Button
-                          variant="unstyled"
-                          size="unset"
+                        <button
+                          type="button"
                           onClick={() => handleStatusChange(order.id, "preparing")}
-                          className="rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-1 text-[11px] font-bold"
+                          className="px-3 py-1 rounded-xl bg-amber-500 text-white font-bold text-xs active:scale-95 shadow-2xs"
                         >
                           Qabul qilish
-                        </Button>
+                        </button>
                       )}
                       {isPreparing && (
-                        <Button
-                          variant="unstyled"
-                          size="unset"
+                        <button
+                          type="button"
                           onClick={() => handleStatusChange(order.id, "delivered")}
-                          className="rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-bold"
+                          className="px-3 py-1 rounded-xl bg-emerald-500 text-white font-bold text-xs active:scale-95 shadow-2xs"
                         >
                           Yetkazildi
-                        </Button>
+                        </button>
                       )}
                     </div>
                   </div>
                 );
               })}
             </div>
-          )}
-        </div>
-
-        {/* O'ng 1 ustun: Fast-food xonalar ro'yxati */}
-        <div className="bg-card border border-border rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-border/70 pb-3">
-            <div className="flex items-center gap-2">
-              <Store className="w-5 h-5 text-primary stroke-[2.2]" />
-              <h3 className="font-display font-extrabold text-foreground text-sm sm:text-base">
-                Xonalar
-              </h3>
-            </div>
-            <Link
-              to="/admin/restaurants"
-              className="text-xs font-bold text-primary hover:underline"
-            >
-              Barchasi ({mockRestaurants.length})
-            </Link>
+          </>
+        ) : (
+          <div className="py-12 text-center text-gray-400">
+            <ShoppingBag className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+            <p className="text-xs font-bold">Hozircha buyurtmalar yo'q</p>
           </div>
-
-          <div className="space-y-2.5">
-            {mockRestaurants.slice(0, 5).map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 p-3 bg-muted/20 hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-card border border-border/60 overflow-hidden shadow-2xs">
-                    {r.logo ? (
-                      <img src={r.logo} alt={r.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="font-display font-bold text-xs">{r.short}</span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-foreground">{r.name}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {r.address} · ⭐ {r.rating}
-                    </p>
-                  </div>
-                </div>
-
-                <Link
-                  to="/restaurants/$restaurantId"
-                  params={{ restaurantId: r.id }}
-                  target="_blank"
-                  className="grid h-7 w-7 place-items-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                  aria-label={`${r.name} sahifasiga o'tish`}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
