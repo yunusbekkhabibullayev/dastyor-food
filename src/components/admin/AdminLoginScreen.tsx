@@ -1,15 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Lock,
   Mail,
   Eye,
   EyeOff,
-  Store,
-  ShieldCheck,
-  CheckCircle2,
-  ArrowRight,
-  AlertCircle,
 } from "lucide-react";
 import { LanguageFlag } from "@/components/ui/FlagIcon";
 import { cn } from "@/lib/utils";
@@ -22,92 +17,70 @@ interface AdminLoginScreenProps {
 
 export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenProps) {
   const navigate = useNavigate();
+  const [lang, setLang] = useState<"uz" | "ru" | "en">("uz");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [lang, setLang] = useState<"uz" | "ru" | "en">("uz");
-  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
+  // Field validation flags
   const [loginTouched, setLoginTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
 
   const isLoginValid = login.trim().length >= 3;
   const isPasswordValid = password.length >= 4;
 
-  const t = {
-    uz: {
-      title: "Tizimga kirish",
-      subtitle: "Dastyor Food Boshqaruv Markazi",
-      loginLabel: "Login yoki Email",
-      loginPlaceholder: "masalan: admin yoki info@dastyor.uz",
-      passwordLabel: "Maxfiy parol",
-      passwordPlaceholder: "••••••••",
-      rememberMe: "Eslab qolish",
-      submitBtn: "Kirish",
-      submitting: "Kirilmoqda...",
-      backToStore: "Saytga qaytish",
-      emptyFields: "Iltimos, login va parolni kiriting!",
-      loginTooShort: "Login kamida 3 ta belgidan iborat bo'lishi kerak!",
-      passwordTooShort: "Parol kamida 4 ta belgidan iborat bo'lishi kerak!",
-      loginSuccess: "Tizimga muvaffaqiyatli kirildi! 👋",
-      demoHint: "Demo kirish uchun: login 'admin', parol 'admin123'",
-    },
-    ru: {
-      title: "Вход в систему",
-      subtitle: "Центр управления Dastyor Food",
-      loginLabel: "Логин или Email",
-      loginPlaceholder: "например: admin или info@dastyor.uz",
-      passwordLabel: "Секретный пароль",
-      passwordPlaceholder: "••••••••",
-      rememberMe: "Запомнить",
-      submitBtn: "Войти",
-      submitting: "Вход...",
-      backToStore: "Вернуться на сайт",
-      emptyFields: "Пожалуйста, заполните все поля!",
-      loginTooShort: "Логин должен содержать минимум 3 символа!",
-      passwordTooShort: "Пароль должен содержать минимум 4 символа!",
-      loginSuccess: "Успешный вход в систему! 👋",
-      demoHint: "Для демо входа: логин 'admin', пароль 'admin123'",
-    },
-    en: {
-      title: "Admin Sign In",
-      subtitle: "Dastyor Food Control Hub",
-      loginLabel: "Login or Email",
-      loginPlaceholder: "e.g. admin or info@dastyor.uz",
-      passwordLabel: "Password",
-      passwordPlaceholder: "••••••••",
-      rememberMe: "Remember me",
-      submitBtn: "Sign In",
-      submitting: "Signing in...",
-      backToStore: "Back to store",
-      emptyFields: "Please enter login and password!",
-      loginTooShort: "Login must be at least 3 characters!",
-      passwordTooShort: "Password must be at least 4 characters!",
-      loginSuccess: "Successfully signed in! 👋",
-      demoHint: "Demo credentials: login 'admin', password 'admin123'",
-    },
-  }[lang];
+  const toggleLanguage = () => {
+    const next = lang === "uz" ? "ru" : lang === "ru" ? "en" : "uz";
+    setLang(next);
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      navigate({ to: "/home" });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginTouched(true);
     setPasswordTouched(true);
 
+    // Validation checks matching reference
     if (!login.trim() || !password.trim()) {
-      setError(t.emptyFields);
+      setError(
+        lang === "uz"
+          ? "Iltimos, login va parolni kiriting!"
+          : lang === "ru"
+            ? "Пожалуйста, заполните все поля!"
+            : "Please enter login and password!",
+      );
       return;
     }
 
     if (!isLoginValid) {
-      setError(t.loginTooShort);
+      setError(
+        lang === "uz"
+          ? "Login kamida 3 ta belgidan iborat bo'lishi kerak!"
+          : lang === "ru"
+            ? "Логин должен содержать минимум 3 символа!"
+            : "Login must be at least 3 characters!",
+      );
       return;
     }
 
     if (!isPasswordValid) {
-      setError(t.passwordTooShort);
+      setError(
+        lang === "uz"
+          ? "Parol kamida 4 ta belgidan iborat bo'lishi kerak!"
+          : lang === "ru"
+            ? "Пароль должен содержать минимум 4 символа!"
+            : "Password must be at least 4 characters!",
+      );
       return;
     }
 
@@ -115,10 +88,9 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
     setError("");
 
     try {
-      // Simulate / verify admin credentials
       await new Promise((r) => setTimeout(r, 600));
 
-      const token = `dastyor_admin_tok_${Date.now()}`;
+      const token = `dastyor_admin_token_${Date.now()}`;
       if (rememberMe) {
         localStorage.setItem("dastyor_admin_token", token);
         localStorage.setItem("dastyor_admin_user", JSON.stringify({ name: login.trim(), role: "super_admin" }));
@@ -127,7 +99,13 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
         sessionStorage.setItem("dastyor_admin_user", JSON.stringify({ name: login.trim(), role: "super_admin" }));
       }
 
-      toast.success(t.loginSuccess);
+      toast.success(
+        lang === "uz"
+          ? "Tizimga muvaffaqiyatli kirildi! 👋"
+          : lang === "ru"
+            ? "Успешный вход в систему! 👋"
+            : "Successfully signed in! 👋",
+      );
 
       if (onLoginSuccess) {
         onLoginSuccess(token, rememberMe);
@@ -135,97 +113,58 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
         navigate({ to: "/admin" });
       }
     } catch {
-      setError("Ulanishda xatolik yuz berdi");
+      setError(
+        lang === "uz"
+          ? "Ulanish xatoligi yuz berdi."
+          : lang === "ru"
+            ? "Ошибка соединения."
+            : "Connection error occurred.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const fillDemoCredentials = () => {
-    setLogin("admin");
-    setPassword("admin123");
-    setError("");
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-background via-primary-soft/35 to-background flex flex-col justify-between items-center p-4 sm:p-6 font-sans relative overflow-hidden select-none">
-      {/* Decorative Brand Ambient Bubbles (in Primary Color, not red) */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-accent/25 rounded-full blur-3xl pointer-events-none -z-10" />
-
-      {/* Top Header: Brand Logo & Language Switcher */}
-      <div className="w-full max-w-sm flex items-center justify-between z-10 pt-2">
-        <Link to="/home" className="flex items-center gap-2.5 text-left group">
-          <div className="w-9 h-9 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-black text-sm shadow-md shadow-primary/20 group-hover:scale-105 transition-transform">
-            D
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-black text-foreground tracking-tight leading-tight">
-              Dastyor Food
-            </span>
-            <span className="text-[10px] text-primary font-bold">
-              Boshqaruv
-            </span>
-          </div>
-        </Link>
-
-        {/* Flag Language Switcher */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setLangDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 backdrop-blur-xs border border-border rounded-xl text-xs font-bold text-foreground shadow-2xs hover:bg-white active:scale-95 transition-all cursor-pointer"
-          >
-            <LanguageFlag lang={lang} className="w-4 h-3 rounded-xs border border-border" />
-            <span className="uppercase text-[11px] font-extrabold">{lang}</span>
-          </button>
-
-          {langDropdownOpen && (
-            <div className="absolute right-0 mt-1.5 w-32 bg-white rounded-2xl shadow-xl border border-border py-1 z-50 animate-scaleUp text-left">
-              {(["uz", "ru", "en"] as const).map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => {
-                    setLang(l);
-                    setLangDropdownOpen(false);
-                  }}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer",
-                    lang === l ? "bg-primary-soft text-primary font-black" : "text-foreground hover:bg-muted",
-                  )}
-                >
-                  <LanguageFlag lang={l} className="w-4 h-3 rounded-xs border border-border" />
-                  <span>{l === "uz" ? "O'zbekcha" : l === "ru" ? "Русский" : "English"}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-tr from-[#f8fafc] via-primary/10 to-[#f5f3ff] flex flex-col justify-center items-center px-4 font-sans relative select-none">
+      {/* Top right language toggle matching online store */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="p-1 hover:opacity-80 active:scale-95 transition-opacity cursor-pointer select-none flex items-center justify-center rounded-xs"
+          title={lang === "uz" ? "O'zbekcha" : lang === "ru" ? "Русский" : "English"}
+        >
+          <LanguageFlag lang={lang} className="w-6 h-4 object-cover shadow-2xs rounded-xs border border-gray-200/80" />
+        </button>
       </div>
 
-      {/* Main Glass Card (Exact Reference Port in Primary Color) */}
-      <div className="w-full max-w-sm my-auto py-8 px-6 sm:px-8 bg-white/80 backdrop-blur-md rounded-[32px] border border-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.06)] flex flex-col text-center transition-all animate-scaleUp z-10">
-        {/* Header Icon Badge (Primary Brand Color) */}
-        <div className="w-14 h-14 rounded-2xl bg-primary-soft text-primary flex items-center justify-center mx-auto mb-5 border border-primary/20 shadow-xs shrink-0">
-          <Lock className="w-6 h-6 animate-pulse" />
+      {/* Mesh gradient decorative bubbles */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl -z-10" />
+
+      {/* Main Glass Card (Exact 1:1 match with C:\Users\yunus\Desktop\online store\src\App.jsx) */}
+      <div className="w-full max-w-sm bg-white/70 backdrop-blur-md p-8 rounded-[32px] border border-white/60 shadow-[0_20px_50px_rgba(59,130,246,0.05)] flex flex-col text-center transition-all animate-scaleUp">
+        {/* Header Icon badge (Project primary color instead of red) */}
+        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 border border-primary/20 shadow-sm shrink-0">
+          <Lock className="w-6 h-6 text-primary animate-pulse" />
         </div>
 
-        <h2 className="text-[20px] font-black text-foreground tracking-tight mb-1">
-          {t.title}
+        <h2 className="text-[20px] font-black text-gray-900 tracking-tight mb-1">
+          {lang === "uz" ? "Tizimga kirish" : lang === "ru" ? "Вход в систему" : "Admin Sign In"}
         </h2>
         <p className="text-[10px] text-primary font-extrabold tracking-wider uppercase mb-7">
-          {t.subtitle}
+          Dastyor Food Manager
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          {/* Login / Email Input */}
+          {/* Login / Email input field */}
           <div>
-            <label className="text-[11px] font-extrabold text-muted-foreground tracking-wider block mb-1.5 pl-1">
-              {t.loginLabel}
+            <label className="text-[11px] font-extrabold text-gray-600 tracking-wider block mb-1.5 pl-1">
+              {lang === "uz" ? "Login yoki Email" : lang === "ru" ? "Логин или Email" : "Login or Email"}
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={login}
@@ -234,24 +173,24 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
                   setLogin(e.target.value);
                   setError("");
                 }}
-                placeholder={t.loginPlaceholder}
+                placeholder="masalan: admin yoki xodim_login"
                 className={cn(
-                  "w-full bg-background/50 border pl-10 pr-4 py-3 rounded-xl text-xs font-semibold text-foreground focus:outline-none focus:ring-2 transition-all placeholder:text-muted-foreground",
+                  "w-full bg-gray-50/50 border pl-10 pr-4 py-3 rounded-xl text-xs font-semibold text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder-gray-400",
                   loginTouched && !isLoginValid
-                    ? "border-destructive/50 focus:border-destructive focus:ring-destructive/10 bg-destructive/5"
-                    : "border-border focus:border-primary focus:ring-primary/10 focus:bg-white",
+                    ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/30"
+                    : "border-gray-200/80 focus:border-primary focus:ring-primary/10 focus:bg-white",
                 )}
               />
             </div>
           </div>
 
-          {/* Password Input */}
+          {/* Password input field */}
           <div>
-            <label className="text-[11px] font-extrabold text-muted-foreground tracking-wider block mb-1.5 pl-1">
-              {t.passwordLabel}
+            <label className="text-[11px] font-extrabold text-gray-600 tracking-wider block mb-1.5 pl-1">
+              {lang === "uz" ? "Maxfiy parol" : lang === "ru" ? "Секретный пароль" : "Password"}
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -260,98 +199,82 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
                   setPassword(e.target.value);
                   setError("");
                 }}
-                placeholder={t.passwordPlaceholder}
+                placeholder="••••••••"
                 className={cn(
-                  "w-full bg-background/50 border pl-10 pr-12 py-3 rounded-xl text-xs font-semibold text-foreground focus:outline-none focus:ring-2 transition-all placeholder:text-muted-foreground",
+                  "w-full bg-gray-50/50 border pl-10 pr-12 py-3 rounded-xl text-xs font-semibold text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder-gray-400",
                   passwordTouched && !isPasswordValid
-                    ? "border-destructive/50 focus:border-destructive focus:ring-destructive/10 bg-destructive/5"
-                    : "border-border focus:border-primary focus:ring-primary/10 focus:bg-white",
+                    ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/30"
+                    : "border-gray-200/80 focus:border-primary focus:ring-primary/10 focus:bg-white",
                 )}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className="w-5 h-5 shrink-0" /> : <Eye className="w-5 h-5 shrink-0" />}
               </button>
             </div>
           </div>
 
-          {/* Remember Me & Demo Helper */}
-          <div className="flex items-center justify-between pl-1 pt-0.5 select-none text-[11px] font-semibold text-muted-foreground">
-            <label className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform">
+          {/* Remember Me and Demo Creds */}
+          <div className="flex items-center justify-between pl-1 pt-0.5 select-none text-[11px] font-semibold text-gray-500">
+            <label className="flex items-center gap-2 cursor-pointer active:scale-98 transition-transform">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-primary bg-background rounded-md border-border focus:ring-primary focus:ring-offset-0 focus:outline-none cursor-pointer"
+                className="w-4 h-4 text-primary bg-gray-50/30 rounded-md border-gray-200 focus:ring-primary focus:ring-offset-0 focus:outline-none cursor-pointer"
               />
-              <span>{t.rememberMe}</span>
+              <span>{lang === "uz" ? "Eslab qolish" : lang === "ru" ? "Запомнить" : "Remember me"}</span>
             </label>
 
             <button
               type="button"
-              onClick={fillDemoCredentials}
-              className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
+              onClick={() => {
+                setLogin("admin");
+                setPassword("admin123");
+                setError("");
+              }}
+              className="text-primary hover:underline text-[10px] font-bold cursor-pointer"
             >
               Demo login
             </button>
           </div>
 
-          {/* Error Message */}
+          {/* Error warning badge */}
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-[11px] font-bold text-destructive text-center flex items-center justify-center gap-1.5 animate-shake">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              <span>{error}</span>
+            <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl text-[11px] font-bold text-rose-600 text-center animate-shake">
+              ⚠️ {error}
             </div>
           )}
 
-          {/* Submit Button (Primary Brand Color) */}
+          {/* Submit button with loader (Project primary color) */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-primary hover:bg-primary/90 active:scale-95 text-primary-foreground font-extrabold text-xs tracking-wider uppercase rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-3.5 cursor-pointer"
+            className="w-full py-3.5 bg-primary hover:opacity-90 active:scale-95 text-primary-foreground font-extrabold text-xs tracking-wider uppercase rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-3.5 cursor-pointer"
           >
             {loading ? (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>{t.submitting}</span>
+                <span>{lang === "uz" ? "Kirilmoqda..." : lang === "ru" ? "Вход..." : "Signing in..."}</span>
               </div>
             ) : (
-              <span>{t.submitBtn}</span>
+              <span>{lang === "uz" ? "Kirish" : lang === "ru" ? "Войти" : "Sign In"}</span>
             )}
           </button>
         </form>
-
-        {/* Demo Hint Banner */}
-        <div className="mt-5 p-2.5 rounded-xl bg-primary-soft/60 border border-primary/15 text-[10px] font-medium text-muted-foreground">
-          <span className="font-bold text-primary mr-1">Eslatma:</span>
-          {t.demoHint}
-        </div>
       </div>
 
-      {/* Return to store button */}
-      <div className="w-full max-w-sm pt-4 pb-2 z-10 flex items-center justify-center">
-        {onCancel ? (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:underline transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-white/60"
-          >
-            <Store className="w-4 h-4" />
-            <span>{t.backToStore}</span>
-          </button>
-        ) : (
-          <Link
-            to="/home"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:underline transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-white/60"
-          >
-            <Store className="w-4 h-4" />
-            <span>{t.backToStore}</span>
-          </Link>
-        )}
-      </div>
+      {/* Return to store button matching online store */}
+      <button
+        type="button"
+        onClick={handleCancel}
+        className="mt-6 text-gray-500 hover:text-gray-900 text-xs font-bold transition-colors active:scale-95 py-2 px-4 rounded-xl hover:bg-gray-100 cursor-pointer"
+      >
+        {lang === "uz" ? "Do'konga qaytish" : lang === "ru" ? "Вернуться в магазин" : "Back to store"}
+      </button>
     </div>
   );
 }
