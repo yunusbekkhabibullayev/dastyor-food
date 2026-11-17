@@ -59,3 +59,4 @@ export function AdminPagination({ currentPage, totalPages, onPageChange }: Admin
     </div>
   );
 }
+

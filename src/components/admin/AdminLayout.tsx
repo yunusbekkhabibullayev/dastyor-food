@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { seedFirestoreData } from "@/lib/firebase-data";
-import { restaurants } from "@/lib/mock-data";
+import { LanguageFlag } from "@/components/ui/FlagIcon";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -33,12 +33,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [restaurantDropdownOpen, setRestaurantDropdownOpen] = useState(false);
-  const [selectedHeaderRestaurant, setSelectedHeaderRestaurant] = useState<string>("all");
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<"uz" | "ru" | "en">("uz");
 
   const profileRef = useRef<HTMLDivElement>(null);
-  const restaurantRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -46,8 +45,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setProfileDropdownOpen(false);
       }
-      if (restaurantRef.current && !restaurantRef.current.contains(event.target as Node)) {
-        setRestaurantDropdownOpen(false);
+      if (langRef.current && !langRef.current.contains(event.target as Node)) {
+        setLangDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -77,10 +76,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     navigate({ to: "/home" });
   };
 
+  const selectLanguage = (l: "uz" | "ru" | "en") => {
+    setCurrentLang(l);
+    setLangDropdownOpen(false);
+    toast.info(`Til tanlandi: ${l === "uz" ? "O'zbekcha" : l === "ru" ? "Русский" : "English"}`);
+  };
+
   const toggleLanguage = () => {
     const nextLang = currentLang === "uz" ? "ru" : currentLang === "ru" ? "en" : "uz";
     setCurrentLang(nextLang);
-    toast.info(`Til: ${nextLang.toUpperCase()}`);
+    toast.info(`Til: ${nextLang === "uz" ? "O'zbekcha" : nextLang === "ru" ? "Русский" : "English"}`);
   };
 
   const menuGroups = [
@@ -117,8 +122,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         : location.pathname.startsWith(i.to),
     ) || allItems[0];
   const ActiveIcon = activeItem.icon;
-
-  const currentRestaurantObj = restaurants.find((r) => r.id === selectedHeaderRestaurant);
 
   return (
     <div className="flex h-screen bg-[#F8FAFC] overflow-hidden text-gray-800 antialiased font-sans">
@@ -245,7 +248,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Main Area Container */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* ─── Top Navbar Header (Exact UI/UX from reference) ──────────────── */}
+        {/* ─── Top Navbar Header (Clean & pixel-perfect matching reference) ─── */}
         <header className="h-14 border-b border-gray-150 bg-white flex items-center justify-between px-3 sm:px-6 shrink-0 shadow-2xs z-30">
           {/* Left: Mobile Drawer Trigger + Active Tab Icon Badge & Title */}
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
@@ -268,90 +271,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <h1 className="font-black text-gray-900 text-xs sm:text-sm uppercase tracking-wide truncate">
               {activeItem.label}
             </h1>
-
-            {/* Global Restaurant Selector Dropdown in Header */}
-            <div className="relative hidden lg:block ml-2" ref={restaurantRef}>
-              <button
-                type="button"
-                onClick={() => setRestaurantDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white text-xs font-bold text-gray-700 transition-all cursor-pointer shadow-2xs"
-              >
-                {currentRestaurantObj?.logo ? (
-                  <img
-                    src={currentRestaurantObj.logo}
-                    alt=""
-                    className="w-3.5 h-3.5 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <Store className="w-3.5 h-3.5 text-gray-500" />
-                )}
-                <span className="truncate max-w-[120px]">
-                  {currentRestaurantObj ? currentRestaurantObj.name : "Barcha Oshxonalar"}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "w-3.5 h-3.5 text-gray-400 transition-transform duration-200",
-                    restaurantDropdownOpen && "rotate-180",
-                  )}
-                />
-              </button>
-
-              {restaurantDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-150 py-1.5 z-50 animate-scaleUp text-left">
-                  <div className="px-3 py-1.5 border-b border-gray-100 text-[10px] font-extrabold uppercase text-gray-400 tracking-wider">
-                    Oshxonani tanlang:
-                  </div>
-                  <div className="max-h-60 overflow-y-auto p-1 space-y-0.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedHeaderRestaurant("all");
-                        setRestaurantDropdownOpen(false);
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer",
-                        selectedHeaderRestaurant === "all"
-                          ? "bg-[#FFF0F1] text-[#CC1122] font-black"
-                          : "text-gray-700 hover:bg-gray-100",
-                      )}
-                    >
-                      <span>🏢 Barchasi (Global)</span>
-                    </button>
-                    {restaurants.map((res) => (
-                      <button
-                        key={res.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedHeaderRestaurant(res.id);
-                          setRestaurantDropdownOpen(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer",
-                          selectedHeaderRestaurant === res.id
-                            ? "bg-[#FFF0F1] text-[#CC1122] font-black"
-                            : "text-gray-700 hover:bg-gray-100",
-                        )}
-                      >
-                        {res.logo ? (
-                          <img
-                            src={res.logo}
-                            alt=""
-                            className="w-3.5 h-3.5 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <UtensilsCrossed className="w-3 h-3 text-gray-400" />
-                        )}
-                        <span className="truncate">{res.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Right Header Actions */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Saytga qaytish Button */}
             <Link
               to="/home"
@@ -362,15 +285,63 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <span className="hidden sm:inline">Saytga qaytish</span>
             </Link>
 
-            {/* Language Switch Button */}
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              className="p-1.5 px-2 hover:bg-gray-100 active:scale-95 text-xs font-black text-gray-700 rounded-xl transition-all cursor-pointer select-none flex items-center gap-1 border border-gray-200"
-              title="Tilni o'zgartirish"
-            >
-              <span>{currentLang === "uz" ? "🇺🇿 O'Z" : currentLang === "ru" ? "🇷🇺 РУ" : "🇬🇧 EN"}</span>
-            </button>
+            {/* Visual SVG Country Flag Switcher (Boxless exactly matching reference) */}
+            <div className="relative" ref={langRef}>
+              <button
+                type="button"
+                onClick={() => setLangDropdownOpen((prev) => !prev)}
+                className="p-1 hover:opacity-85 active:scale-95 transition-all cursor-pointer select-none flex items-center justify-center rounded-md"
+                title={currentLang === "uz" ? "O'zbekcha" : currentLang === "ru" ? "Русский" : "English"}
+              >
+                <LanguageFlag
+                  lang={currentLang}
+                  className="w-6 h-4 object-cover shadow-2xs rounded-xs border border-gray-200/90"
+                />
+              </button>
+
+              {langDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-36 bg-white rounded-2xl shadow-xl border border-gray-150 py-1.5 z-50 animate-scaleUp text-left">
+                  <div className="px-3 py-1 border-b border-gray-100 text-[9px] font-extrabold uppercase text-gray-400 tracking-wider">
+                    Tilni tanlang:
+                  </div>
+                  <div className="p-1 space-y-0.5 text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={() => selectLanguage("uz")}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer",
+                        currentLang === "uz" ? "bg-[#FFF0F1] text-[#CC1122] font-black" : "text-gray-700 hover:bg-gray-100",
+                      )}
+                    >
+                      <LanguageFlag lang="uz" className="w-5 h-3.5 object-cover rounded-xs border border-gray-200" />
+                      <span>O'zbekcha</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => selectLanguage("ru")}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer",
+                        currentLang === "ru" ? "bg-[#FFF0F1] text-[#CC1122] font-black" : "text-gray-700 hover:bg-gray-100",
+                      )}
+                    >
+                      <LanguageFlag lang="ru" className="w-5 h-3.5 object-cover rounded-xs border border-gray-200" />
+                      <span>Русский</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => selectLanguage("en")}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer",
+                        currentLang === "en" ? "bg-[#FFF0F1] text-[#CC1122] font-black" : "text-gray-700 hover:bg-gray-100",
+                      )}
+                    >
+                      <LanguageFlag lang="en" className="w-5 h-3.5 object-cover rounded-xs border border-gray-200" />
+                      <span>English</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Profile Dropdown Trigger */}
             <div className="relative" ref={profileRef}>
