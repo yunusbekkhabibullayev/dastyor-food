@@ -339,3 +339,4 @@ export async function createFirestoreOrder(order: OrderDoc): Promise<void> {
   if (!db || !isFirebaseConfigured) return;
   await setDoc(doc(db, "orders", order.id), order);
 }
+
