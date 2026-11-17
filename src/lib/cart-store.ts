@@ -62,6 +62,8 @@ export const cartRestaurantId = (s: State) => {
 
 export type AddResult = "ok" | "conflict";
 
+let orderCounter = 0;
+
 export const cart = {
   /** Call once on the client after hydration to restore the saved cart. */
   hydrate: () => {
@@ -150,7 +152,7 @@ export const cart = {
     const t = cartTotals(state);
     if (!t.restaurantId || t.lines.length === 0) return null;
     const order: Order = {
-      id: `FF-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 90 + 10)}`,
+      id: `FF-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 90 + 10)}${++orderCounter % 100}`,
       createdAt: new Date().toISOString(),
       restaurantId: t.restaurantId,
       lines: t.lines.map((l) => ({

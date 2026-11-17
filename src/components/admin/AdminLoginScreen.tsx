@@ -6,7 +6,6 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { LanguageFlag } from "@/components/ui/FlagIcon";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -127,18 +126,6 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-[#f8fafc] via-primary/10 to-[#f5f3ff] flex flex-col justify-center items-center px-4 font-sans relative select-none">
-      {/* Top right language toggle matching online store */}
-      <div className="absolute top-4 right-4 z-20">
-        <button
-          type="button"
-          onClick={toggleLanguage}
-          className="p-1 hover:opacity-80 active:scale-95 transition-opacity cursor-pointer select-none flex items-center justify-center rounded-xs"
-          title={lang === "uz" ? "O'zbekcha" : lang === "ru" ? "Русский" : "English"}
-        >
-          <LanguageFlag lang={lang} className="w-6 h-4 object-cover shadow-2xs rounded-xs border border-gray-200/80" />
-        </button>
-      </div>
-
       {/* Mesh gradient decorative bubbles */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl -z-10" />
@@ -164,7 +151,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
               {lang === "uz" ? "Login yoki Email" : lang === "ru" ? "Логин или Email" : "Login or Email"}
             </label>
             <div className="relative">
-              <Mail className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={login}
@@ -174,8 +161,9 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
                   setError("");
                 }}
                 placeholder="masalan: admin yoki xodim_login"
+                style={{ fontSize: "12px", lineHeight: "1.2" }}
                 className={cn(
-                  "w-full h-10 bg-gray-50/50 border pl-9 pr-3.5 py-2 rounded-xl text-[11px] font-medium text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder:text-[11px] placeholder:font-normal placeholder:text-gray-400",
+                  "w-full h-9 bg-gray-50/50 border pl-8.5 pr-3.5 py-1.5 rounded-xl text-xs font-normal text-gray-800 focus:outline-none focus:ring-2 transition-all placeholder:text-[11px] placeholder:font-normal placeholder:text-gray-400",
                   loginTouched && !isLoginValid
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/30"
                     : "border-gray-200/80 focus:border-primary focus:ring-primary/10 focus:bg-white",
@@ -190,7 +178,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
               {lang === "uz" ? "Maxfiy parol" : lang === "ru" ? "Секретный пароль" : "Password"}
             </label>
             <div className="relative">
-              <Lock className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -200,8 +188,9 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
                   setError("");
                 }}
                 placeholder="••••••••"
+                style={{ fontSize: "12px", lineHeight: "1.2" }}
                 className={cn(
-                  "w-full h-10 bg-gray-50/50 border pl-9 pr-10 py-2 rounded-xl text-[11px] font-medium text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder:text-[11px] placeholder:font-normal placeholder:text-gray-400",
+                  "w-full h-9 bg-gray-50/50 border pl-8.5 pr-9 py-1.5 rounded-xl text-xs font-normal text-gray-800 focus:outline-none focus:ring-2 transition-all placeholder:text-[11px] placeholder:font-normal placeholder:text-gray-400",
                   passwordTouched && !isPasswordValid
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/30"
                     : "border-gray-200/80 focus:border-primary focus:ring-primary/10 focus:bg-white",
@@ -210,7 +199,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors absolute right-1.5 top-1/2 -translate-y-1/2 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
               </button>
