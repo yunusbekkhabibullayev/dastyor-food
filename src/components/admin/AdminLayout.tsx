@@ -1,132 +1,162 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ShoppingBag,
   UtensilsCrossed,
-  Store,
   Layers,
   Image as ImageIcon,
   Settings,
-  Store as StoreIcon,
+  Store,
   Menu,
   X,
+  ChevronDown,
   RefreshCw,
-  UserCircle,
+  LogOut,
+  User,
+  ShieldCheck,
+  Store as StoreIcon,
 } from "lucide-react";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { seedFirestoreData } from "@/lib/firebase-data";
-import { toast } from "sonner";
+import { restaurants } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
-const menuGroups = [
-  {
-    id: "main",
-    title: "Asosiy",
-    items: [
-      { to: "/admin", label: "Statistika", icon: LayoutDashboard },
-      { to: "/admin/orders", label: "Buyurtmalar", icon: ShoppingBag },
-    ],
-  },
-  {
-    id: "catalog",
-    title: "Katalog & Marketing",
-    items: [
-      { to: "/admin/products", label: "Mahsulotlar", icon: UtensilsCrossed },
-      { to: "/admin/restaurants", label: "Xonalar", icon: Store },
-      { to: "/admin/categories", label: "Kategoriyalar", icon: Layers },
-      { to: "/admin/banners", label: "Bannerlar", icon: ImageIcon },
-    ],
-  },
-  {
-    id: "system",
-    title: "Sozlamalar",
-    items: [
-      { to: "/admin/settings", label: "Sozlamalar", icon: Settings },
-    ],
-  },
-] as const;
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
 
-const allNavItems = menuGroups.flatMap((g) => g.items);
-
-export function AdminLayout({ children }: { children: React.ReactNode }) {
+export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [restaurantDropdownOpen, setRestaurantDropdownOpen] = useState(false);
+  const [selectedHeaderRestaurant, setSelectedHeaderRestaurant] = useState<string>("all");
+  const [currentLang, setCurrentLang] = useState<"uz" | "ru" | "en">("uz");
 
-  // Auto close mobile drawer on route navigation
+  const profileRef = useRef<HTMLDivElement>(null);
+  const restaurantRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on click outside
   useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
+    function handleClickOutside(event: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+      if (restaurantRef.current && !restaurantRef.current.contains(event.target as Node)) {
+        setRestaurantDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSeed = async () => {
     if (!isFirebaseConfigured) {
-      toast.error("Firebase sozlamalari topilmadi", {
-        description: ".env fayliga Firebase kalitlarini kiriting.",
-      });
+      toast.error("Firebase sozlanmagan! .env.local faylini tekshiring.");
       return;
     }
-
+    setIsSeeding(true);
     try {
-      setIsSeeding(true);
       const res = await seedFirestoreData();
-      if (res.success) {
-        toast.success("Baza muvaffaqiyatli to'ldirildi!", {
-          description: `${res.restaurantsCount} ta xona, ${res.productsCount} ta taom va ${res.categoriesCount} ta toifa yuklandi.`,
-        });
-      } else {
-        toast.error("Xatolik", { description: res.message });
-      }
+      toast.success(
+        `Firebase muvaffaqiyatli sinxronlandi! (${res.restaurants} restoran, ${res.products} taom, ${res.categories} kategoriya)`,
+      );
     } catch {
-      toast.error("Sinxronizatsiyada xatolik yuz berdi");
+      toast.error("Ma'lumotlarni yuklashda xatolik yuz berdi");
     } finally {
       setIsSeeding(false);
     }
   };
 
-  // Find active navigation item for header
+  const handleLogout = () => {
+    toast.info("Tizimdan chiqildi");
+    navigate({ to: "/home" });
+  };
+
+  const toggleLanguage = () => {
+    const nextLang = currentLang === "uz" ? "ru" : currentLang === "ru" ? "en" : "uz";
+    setCurrentLang(nextLang);
+    toast.info(`Til: ${nextLang.toUpperCase()}`);
+  };
+
+  const menuGroups = [
+    {
+      id: "main",
+      title: "Asosiy",
+      items: [
+        { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
+        { to: "/admin/orders", label: "Buyurtmalar", icon: ShoppingBag },
+      ],
+    },
+    {
+      id: "catalog",
+      title: "Menyu & Oshxonalar",
+      items: [
+        { to: "/admin/products", label: "Taomlar", icon: UtensilsCrossed },
+        { to: "/admin/restaurants", label: "Restoranlar", icon: Store },
+        { to: "/admin/categories", label: "Kategoriyalar", icon: Layers },
+        { to: "/admin/banners", label: "Bannerlar", icon: ImageIcon },
+      ],
+    },
+    {
+      id: "system",
+      title: "Tizim",
+      items: [{ to: "/admin/settings", label: "Sozlamalar", icon: Settings }],
+    },
+  ];
+
+  const allItems = menuGroups.flatMap((g) => g.items);
   const activeItem =
-    allNavItems.find((item) =>
-      item.to === "/admin"
+    allItems.find((i) =>
+      i.to === "/admin"
         ? location.pathname === "/admin" || location.pathname === "/admin/"
-        : location.pathname.startsWith(item.to),
-    ) || allNavItems[0];
+        : location.pathname.startsWith(i.to),
+    ) || allItems[0];
   const ActiveIcon = activeItem.icon;
 
+  const currentRestaurantObj = restaurants.find((r) => r.id === selectedHeaderRestaurant);
+
   return (
-    <div className="flex h-screen bg-[#F8FAFC] font-sans antialiased overflow-hidden select-none">
-      {/* Mobile Drawer Overlay Backdrop */}
+    <div className="flex h-screen bg-[#F8FAFC] overflow-hidden text-gray-800 antialiased font-sans">
+      {/* Mobile Drawer Backdrop */}
       {sidebarOpen && (
         <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs md:hidden animate-fadeIn"
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
         />
       )}
 
-      {/* Sidebar Navigation (Clean Brand White Theme matching online store reference) */}
+      {/* Brand Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col w-60 bg-white border-r border-gray-150 text-gray-900 transform transition-transform duration-300 md:translate-x-0 md:static shrink-0 shadow-sm",
+          "fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-gray-150 flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0 shadow-xs",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {/* Store Brand / Logo Header in Sidebar */}
         <div className="p-4 flex items-center justify-between border-b border-gray-100">
-          <Link to="/admin" className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#CC1122] to-[#ff4d5e] flex items-center justify-center text-white font-black text-sm shadow-md shadow-[#CC1122]/20 shrink-0">
+          <Link
+            to="/admin"
+            className="flex items-center gap-3 min-w-0"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div className="w-9 h-9 rounded-2xl bg-[#CC1122] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-[#CC1122]/30">
               D
             </div>
-            <div className="min-w-0 flex-1 text-left">
+            <div className="flex flex-col min-w-0 text-left">
               <h2 className="font-extrabold text-xs text-gray-900 truncate leading-tight tracking-tight">
                 Dastyor Food
               </h2>
               <span className="text-[10px] text-[#CC1122] font-black uppercase tracking-wider block mt-0.5">
-                Do'kon boshqaruvi
+                Admin Panel
               </span>
             </div>
           </Link>
 
-          {/* Mobile close sidebar button */}
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
@@ -137,7 +167,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {/* Menu Links grouped by functional sections */}
+        {/* Menu Links */}
         <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto no-scrollbar">
           {menuGroups.map((group) => (
             <div key={group.id} className="space-y-1">
@@ -155,6 +185,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   <Link
                     key={item.to}
                     to={item.to}
+                    onClick={() => setSidebarOpen(false)}
                     className={cn(
                       "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer",
                       isActive
@@ -164,8 +195,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   >
                     <Icon
                       className={cn(
-                        "w-4 h-4 shrink-0",
-                        isActive ? "text-white" : "text-gray-400 group-hover:text-[#CC1122]",
+                        "w-4 h-4 shrink-0 stroke-[2.2]",
+                        isActive ? "text-white" : "text-gray-500",
                       )}
                     />
                     <span>{item.label}</span>
@@ -176,10 +207,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Clean Minimal Sidebar Footer */}
+        {/* Minimal Sidebar Footer */}
         <div className="p-3 border-t border-gray-100 flex items-center justify-between text-gray-500 bg-gray-50/50">
           <div className="flex items-center gap-2 pl-2">
-            <div className={cn("w-2 h-2 rounded-full", isFirebaseConfigured ? "bg-emerald-500 animate-pulse" : "bg-amber-500")} />
+            <div
+              className={cn(
+                "w-2 h-2 rounded-full",
+                isFirebaseConfigured ? "bg-emerald-500 animate-pulse" : "bg-amber-500",
+              )}
+            />
             <span className="text-[10px] font-bold text-gray-500">
               {isFirebaseConfigured ? "Firebase Faol" : "Dastyor v2.1.43"}
             </span>
@@ -200,25 +236,118 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <Link
             to="/admin/settings"
             className="p-1.5 hover:bg-[#FFF0F1] text-gray-400 hover:text-[#CC1122] rounded-xl transition-colors cursor-pointer"
-            title="Profil & Sozlamalar"
+            title="Sozlamalar"
           >
-            <UserCircle className="w-4 h-4" />
+            <Settings className="w-4 h-4" />
           </Link>
         </div>
       </aside>
 
       {/* Main Area Container */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Top Navbar Header (h-14 border-b border-gray-150 bg-white) */}
-        <header className="h-14 border-b border-gray-150 bg-white flex items-center justify-between px-4 sm:px-6 shrink-0 shadow-2xs z-30">
-          {/* Active Tab Icon Badge + Title */}
-          <div className="flex items-center gap-2.5">
+        {/* ─── Top Navbar Header (Exact UI/UX from reference) ──────────────── */}
+        <header className="h-14 border-b border-gray-150 bg-white flex items-center justify-between px-3 sm:px-6 shrink-0 shadow-2xs z-30">
+          {/* Left: Mobile Drawer Trigger + Active Tab Icon Badge & Title */}
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            {/* Mobile Hamburger Button */}
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden p-1.5 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer -ml-1"
+              aria-label="Menyu"
+            >
+              <Menu className="w-5 h-5 stroke-[2.2]" />
+            </button>
+
+            {/* Active Tab Icon Badge */}
             <div className="w-8 h-8 rounded-xl bg-[#FFF0F1] text-[#CC1122] flex items-center justify-center border border-[#FFE4E6] shadow-2xs shrink-0">
               <ActiveIcon className="w-4 h-4 stroke-[2.2]" />
             </div>
+
+            {/* Title */}
             <h1 className="font-black text-gray-900 text-xs sm:text-sm uppercase tracking-wide truncate">
               {activeItem.label}
             </h1>
+
+            {/* Global Restaurant Selector Dropdown in Header */}
+            <div className="relative hidden lg:block ml-2" ref={restaurantRef}>
+              <button
+                type="button"
+                onClick={() => setRestaurantDropdownOpen((prev) => !prev)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white text-xs font-bold text-gray-700 transition-all cursor-pointer shadow-2xs"
+              >
+                {currentRestaurantObj?.logo ? (
+                  <img
+                    src={currentRestaurantObj.logo}
+                    alt=""
+                    className="w-3.5 h-3.5 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <Store className="w-3.5 h-3.5 text-gray-500" />
+                )}
+                <span className="truncate max-w-[120px]">
+                  {currentRestaurantObj ? currentRestaurantObj.name : "Barcha Oshxonalar"}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "w-3.5 h-3.5 text-gray-400 transition-transform duration-200",
+                    restaurantDropdownOpen && "rotate-180",
+                  )}
+                />
+              </button>
+
+              {restaurantDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-150 py-1.5 z-50 animate-scaleUp text-left">
+                  <div className="px-3 py-1.5 border-b border-gray-100 text-[10px] font-extrabold uppercase text-gray-400 tracking-wider">
+                    Oshxonani tanlang:
+                  </div>
+                  <div className="max-h-60 overflow-y-auto p-1 space-y-0.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedHeaderRestaurant("all");
+                        setRestaurantDropdownOpen(false);
+                      }}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer",
+                        selectedHeaderRestaurant === "all"
+                          ? "bg-[#FFF0F1] text-[#CC1122] font-black"
+                          : "text-gray-700 hover:bg-gray-100",
+                      )}
+                    >
+                      <span>🏢 Barchasi (Global)</span>
+                    </button>
+                    {restaurants.map((res) => (
+                      <button
+                        key={res.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedHeaderRestaurant(res.id);
+                          setRestaurantDropdownOpen(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer",
+                          selectedHeaderRestaurant === res.id
+                            ? "bg-[#FFF0F1] text-[#CC1122] font-black"
+                            : "text-gray-700 hover:bg-gray-100",
+                        )}
+                      >
+                        {res.logo ? (
+                          <img
+                            src={res.logo}
+                            alt=""
+                            className="w-3.5 h-3.5 rounded-full object-cover shrink-0"
+                          />
+                        ) : (
+                          <UtensilsCrossed className="w-3 h-3 text-gray-400" />
+                        )}
+                        <span className="truncate">{res.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right Header Actions */}
@@ -233,23 +362,104 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <span className="hidden sm:inline">Saytga qaytish</span>
             </Link>
 
-            {/* Profile Avatar */}
-            <div className="flex items-center gap-2 border-l pl-2 sm:pl-3 border-gray-150">
-              <div className="w-8 h-8 rounded-2xl bg-[#CC1122] text-white flex items-center justify-center font-black text-xs shadow-sm shadow-[#CC1122]/20">
-                A
-              </div>
+            {/* Language Switch Button */}
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="p-1.5 px-2 hover:bg-gray-100 active:scale-95 text-xs font-black text-gray-700 rounded-xl transition-all cursor-pointer select-none flex items-center gap-1 border border-gray-200"
+              title="Tilni o'zgartirish"
+            >
+              <span>{currentLang === "uz" ? "🇺🇿 O'Z" : currentLang === "ru" ? "🇷🇺 РУ" : "🇬🇧 EN"}</span>
+            </button>
+
+            {/* Profile Dropdown Trigger */}
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                className="flex items-center gap-2 border-l pl-2 sm:pl-3 border-gray-150 hover:bg-gray-50 py-1 px-1.5 sm:px-2 rounded-2xl transition-all cursor-pointer select-none"
+              >
+                <div className="w-8 h-8 rounded-2xl bg-[#CC1122] text-white flex items-center justify-center font-black text-xs shadow-sm shadow-[#CC1122]/20">
+                  A
+                </div>
+                <div className="hidden md:flex flex-col text-left">
+                  <span className="text-xs font-black text-gray-900 leading-tight flex items-center gap-1 truncate max-w-[120px]">
+                    Admin
+                    <ChevronDown
+                      className={cn(
+                        "w-3.5 h-3.5 text-gray-400 transition-transform duration-200",
+                        profileDropdownOpen && "rotate-180",
+                      )}
+                    />
+                  </span>
+                  <span className="text-[10px] text-[#CC1122] font-black uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                    <ShieldCheck className="w-3 h-3 text-[#CC1122] shrink-0 stroke-[2.2]" />
+                    <span>Super Admin</span>
+                  </span>
+                </div>
+              </button>
+
+              {/* Profile Dropdown Popup Menu */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-3xl shadow-xl border border-gray-150 py-1.5 z-50 animate-scaleUp text-left">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-[#FFF0F1]/40 rounded-t-3xl">
+                    <p className="text-xs font-black text-gray-900 truncate">Admin Yunusbek</p>
+                    <p className="text-[10px] font-black text-[#CC1122] mt-1 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#CC1122] shrink-0 stroke-[2.2]" />
+                      <span>Super Admin</span>
+                    </p>
+                  </div>
+
+                  <div className="p-1.5 space-y-0.5 text-xs">
+                    <Link
+                      to="/admin/settings"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 hover:bg-[#FFF0F1] hover:text-[#CC1122] font-bold transition-colors cursor-pointer"
+                    >
+                      <User className="w-4 h-4 text-[#CC1122] shrink-0" />
+                      <span>Profil & Sozlamalar</span>
+                    </Link>
+
+                    {isFirebaseConfigured && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileDropdownOpen(false);
+                          handleSeed();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 hover:bg-[#FFF0F1] hover:text-[#CC1122] font-bold transition-colors cursor-pointer"
+                      >
+                        <RefreshCw className="w-4 h-4 text-[#CC1122] shrink-0" />
+                        <span>Bazani sinxronlash</span>
+                      </button>
+                    )}
+
+                    <div className="my-1 border-t border-gray-100" />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-bold transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
+                      <span>Tizimdan chiqish</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>
 
-        {/* Content View Container with padding-bottom for mobile bottom bar */}
+        {/* Content View Container */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-6 bg-[#F8FAFC]">
-          <div className="max-w-6xl mx-auto pb-24 md:pb-12">
-            {children}
-          </div>
+          <div className="max-w-6xl mx-auto pb-24 md:pb-12">{children}</div>
         </main>
 
-        {/* Mobile Bottom Navigation Bar (exact quick thumb access matching reference) */}
+        {/* Mobile Bottom Navigation Bar */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-150 px-2 py-1.5 flex items-center justify-around shadow-lg">
           <Link
             to="/admin"
@@ -287,14 +497,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             )}
           >
             <UtensilsCrossed className="w-5 h-5 stroke-[2.2]" />
-            <span className="text-[10px]">Tovarlar</span>
+            <span className="text-[10px]">Taomlar</span>
           </Link>
 
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl text-gray-500 font-medium hover:text-[#CC1122] active:scale-95 transition-all cursor-pointer"
-            aria-label="Menyu"
+            className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl text-gray-500 font-medium hover:text-gray-900 transition-all cursor-pointer"
           >
             <Menu className="w-5 h-5 stroke-[2.2]" />
             <span className="text-[10px]">Menyu</span>
