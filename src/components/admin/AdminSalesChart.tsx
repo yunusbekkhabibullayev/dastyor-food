@@ -245,3 +245,4 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
     </div>
   );
 }
+

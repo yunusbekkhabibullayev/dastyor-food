@@ -340,3 +340,14 @@ export async function createFirestoreOrder(order: OrderDoc): Promise<void> {
   await setDoc(doc(db, "orders", order.id), order);
 }
 
+export async function deleteFirestoreOrder(orderId: string): Promise<void> {
+  if (!db || !isFirebaseConfigured) return;
+  await deleteDoc(doc(db, "orders", orderId));
+}
+
+export async function bulkDeleteFirestoreOrders(orderIds: string[]): Promise<void> {
+  if (!db || !isFirebaseConfigured) return;
+  await Promise.all(orderIds.map((id) => deleteDoc(doc(db, "orders", id))));
+}
+
+
