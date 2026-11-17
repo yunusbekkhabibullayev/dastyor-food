@@ -72,8 +72,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("dastyor_admin_token");
+      localStorage.removeItem("dastyor_admin_user");
+      sessionStorage.removeItem("dastyor_admin_token");
+      sessionStorage.removeItem("dastyor_admin_user");
+    }
     toast.info("Tizimdan chiqildi");
-    navigate({ to: "/home" });
+    navigate({ to: "/admin/login" });
   };
 
   const selectLanguage = (l: "uz" | "ru" | "en") => {

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
 export const Route = createFileRoute("/admin")({
@@ -6,10 +6,16 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminLayoutRoute() {
+  const location = useLocation();
+
+  // If on /admin/login, render without sidebar / header
+  if (location.pathname === "/admin/login" || location.pathname === "/admin/login/") {
+    return <Outlet />;
+  }
+
   return (
     <AdminLayout>
       <Outlet />
     </AdminLayout>
   );
 }
-
