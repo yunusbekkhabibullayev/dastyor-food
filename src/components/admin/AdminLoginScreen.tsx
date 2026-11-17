@@ -164,7 +164,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
               {lang === "uz" ? "Login yoki Email" : lang === "ru" ? "Логин или Email" : "Login or Email"}
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={login}
@@ -175,7 +175,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
                 }}
                 placeholder="masalan: admin yoki xodim_login"
                 className={cn(
-                  "w-full bg-gray-50/50 border pl-10 pr-4 py-3 rounded-xl text-xs font-semibold text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder-gray-400",
+                  "w-full h-10 bg-gray-50/50 border pl-9 pr-3.5 py-2 rounded-xl text-[11px] font-medium text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder:text-[11px] placeholder:font-normal placeholder:text-gray-400",
                   loginTouched && !isLoginValid
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/30"
                     : "border-gray-200/80 focus:border-primary focus:ring-primary/10 focus:bg-white",
@@ -190,7 +190,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
               {lang === "uz" ? "Maxfiy parol" : lang === "ru" ? "Секретный пароль" : "Password"}
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -201,7 +201,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
                 }}
                 placeholder="••••••••"
                 className={cn(
-                  "w-full bg-gray-50/50 border pl-10 pr-12 py-3 rounded-xl text-xs font-semibold text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder-gray-400",
+                  "w-full h-10 bg-gray-50/50 border pl-9 pr-10 py-2 rounded-xl text-[11px] font-medium text-gray-900 focus:outline-none focus:ring-2 transition-all placeholder:text-[11px] placeholder:font-normal placeholder:text-gray-400",
                   passwordTouched && !isPasswordValid
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10 bg-rose-50/30"
                     : "border-gray-200/80 focus:border-primary focus:ring-primary/10 focus:bg-white",
@@ -210,15 +210,15 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-5 h-5 shrink-0" /> : <Eye className="w-5 h-5 shrink-0" />}
+                {showPassword ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
               </button>
             </div>
           </div>
 
-          {/* Remember Me and Demo Creds */}
-          <div className="flex items-center justify-between pl-1 pt-0.5 select-none text-[11px] font-semibold text-gray-500">
+          {/* Remember Me */}
+          <div className="flex items-center pl-1 pt-0.5 select-none text-[11px] font-semibold text-gray-500">
             <label className="flex items-center gap-2 cursor-pointer active:scale-98 transition-transform">
               <input
                 type="checkbox"
@@ -228,18 +228,6 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
               />
               <span>{lang === "uz" ? "Eslab qolish" : lang === "ru" ? "Запомнить" : "Remember me"}</span>
             </label>
-
-            <button
-              type="button"
-              onClick={() => {
-                setLogin("admin");
-                setPassword("admin123");
-                setError("");
-              }}
-              className="text-primary hover:underline text-[10px] font-bold cursor-pointer"
-            >
-              Demo login
-            </button>
           </div>
 
           {/* Error warning badge */}
