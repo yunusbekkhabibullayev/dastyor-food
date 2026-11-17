@@ -122,3 +122,4 @@ export interface OrderDoc {
   };
   updatedAt?: string;
 }
+

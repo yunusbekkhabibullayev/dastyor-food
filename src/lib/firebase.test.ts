@@ -16,3 +16,4 @@ describe("Firebase module", () => {
     expect(storage === null || typeof storage === "object").toBe(true);
   });
 });
+
