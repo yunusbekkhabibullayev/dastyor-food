@@ -8,6 +8,76 @@ export interface AdminUser {
   role: string;
 }
 
+export interface AdminCredentialAccount {
+  login: string;
+  email: string;
+  password: string;
+  name: string;
+  role: "super_admin" | "admin" | "manager";
+}
+
+/**
+ * Valid system administrator and staff accounts.
+ * Defaults match industry standard (admin / admin123) and can be configured via environment variables.
+ */
+export const SYSTEM_ADMIN_ACCOUNTS: AdminCredentialAccount[] = [
+  {
+    login: (import.meta.env.VITE_ADMIN_LOGIN || "admin").toLowerCase(),
+    email: "admin@dastyor.uz",
+    password: import.meta.env.VITE_ADMIN_PASSWORD || "admin123",
+    name: "Super Administrator",
+    role: "super_admin",
+  },
+  {
+    login: "yunusbek",
+    email: "yunusbek@dastyor.uz",
+    password: import.meta.env.VITE_ADMIN_PASSWORD || "admin123",
+    name: "Admin Yunusbek",
+    role: "super_admin",
+  },
+  {
+    login: "manager",
+    email: "manager@dastyor.uz",
+    password: "manager123",
+    name: "Dastyor Menejer",
+    role: "manager",
+  },
+];
+
+/**
+ * Strictly verifies admin login and password credentials.
+ * Returns success=true only when exact match is found.
+ */
+export function verifyAdminCredentials(
+  identifier: string,
+  pass: string,
+): { success: boolean; user?: AdminUser; error?: string } {
+  const cleanId = (identifier || "").trim().toLowerCase();
+  const cleanPass = (pass || "").trim();
+
+  if (!cleanId || !cleanPass) {
+    return { success: false, error: "Login va parolni kiriting!" };
+  }
+
+  const account = SYSTEM_ADMIN_ACCOUNTS.find(
+    (acc) =>
+      (acc.login.toLowerCase() === cleanId || acc.email.toLowerCase() === cleanId) &&
+      acc.password === cleanPass,
+  );
+
+  if (!account) {
+    return { success: false, error: "Login yoki parol noto'g'ri!" };
+  }
+
+  return {
+    success: true,
+    user: {
+      name: account.name,
+      role: account.role,
+    },
+  };
+}
+
 type AuthListener = () => void;
 const listeners = new Set<AuthListener>();
 

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { saveAdminAuth } from "@/lib/admin-auth";
+import { saveAdminAuth, verifyAdminCredentials } from "@/lib/admin-auth";
 
 interface AdminLoginScreenProps {
   onLoginSuccess?: (token: string, remember: boolean) => void;
@@ -88,10 +88,22 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
     setError("");
 
     try {
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 400));
+
+      const verification = verifyAdminCredentials(login, password);
+      if (!verification.success || !verification.user) {
+        setError(
+          lang === "uz"
+            ? "Login yoki parol noto'g'ri!"
+            : lang === "ru"
+              ? "Неверный логин или пароль!"
+              : "Invalid login or password!",
+        );
+        return;
+      }
 
       const token = `dastyor_admin_token_${Date.now()}`;
-      saveAdminAuth(token, { name: login.trim(), role: "super_admin" }, rememberMe);
+      saveAdminAuth(token, verification.user, rememberMe);
 
       toast.success(
         lang === "uz"
