@@ -1,5 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, useNavigate, useHydrated } from "@tanstack/react-router";
 import { AdminLoginScreen } from "@/components/admin/AdminLoginScreen";
+import { useIsAdminAuthenticated } from "@/lib/admin-auth";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
@@ -10,6 +12,14 @@ export const Route = createFileRoute("/admin/login")({
 
 function AdminLoginPage() {
   const navigate = useNavigate();
+  const isHydrated = useHydrated();
+  const isAuthenticated = useIsAdminAuthenticated();
+
+  useEffect(() => {
+    if (isHydrated && isAuthenticated) {
+      navigate({ to: "/admin", replace: true });
+    }
+  }, [isHydrated, isAuthenticated, navigate]);
 
   return (
     <AdminLoginScreen

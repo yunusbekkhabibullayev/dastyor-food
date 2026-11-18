@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { saveAdminAuth } from "@/lib/admin-auth";
 
 interface AdminLoginScreenProps {
   onLoginSuccess?: (token: string, remember: boolean) => void;
@@ -90,13 +91,7 @@ export function AdminLoginScreen({ onLoginSuccess, onCancel }: AdminLoginScreenP
       await new Promise((r) => setTimeout(r, 600));
 
       const token = `dastyor_admin_token_${Date.now()}`;
-      if (rememberMe) {
-        localStorage.setItem("dastyor_admin_token", token);
-        localStorage.setItem("dastyor_admin_user", JSON.stringify({ name: login.trim(), role: "super_admin" }));
-      } else {
-        sessionStorage.setItem("dastyor_admin_token", token);
-        sessionStorage.setItem("dastyor_admin_user", JSON.stringify({ name: login.trim(), role: "super_admin" }));
-      }
+      saveAdminAuth(token, { name: login.trim(), role: "super_admin" }, rememberMe);
 
       toast.success(
         lang === "uz"

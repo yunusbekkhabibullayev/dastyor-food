@@ -22,6 +22,7 @@ import { seedFirestoreData } from "@/lib/firebase-data";
 import { LanguageFlag } from "@/components/ui/FlagIcon";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { clearAdminAuth, getAdminUser } from "@/lib/admin-auth";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -35,6 +36,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<"uz" | "ru" | "en">("uz");
+  const adminUser = getAdminUser();
+  const displayName = adminUser?.name || "Admin";
 
   const profileRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
@@ -72,12 +75,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("dastyor_admin_token");
-      localStorage.removeItem("dastyor_admin_user");
-      sessionStorage.removeItem("dastyor_admin_token");
-      sessionStorage.removeItem("dastyor_admin_user");
-    }
+    clearAdminAuth();
     toast.info("Tizimdan chiqildi");
     navigate({ to: "/admin/login" });
   };
@@ -361,7 +359,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
                 <div className="hidden md:flex flex-col text-left">
                   <span className="text-xs font-black text-gray-900 leading-tight flex items-center gap-1 truncate max-w-[120px]">
-                    Admin
+                    {displayName}
                     <ChevronDown
                       className={cn(
                         "w-3.5 h-3.5 text-gray-400 transition-transform duration-200",
@@ -380,7 +378,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {profileDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-3xl shadow-xl border border-gray-150 py-1.5 z-50 animate-scaleUp text-left">
                   <div className="px-4 py-3 border-b border-gray-100 bg-[#FFF0F1]/40 rounded-t-3xl">
-                    <p className="text-xs font-black text-gray-900 truncate">Admin Yunusbek</p>
+                    <p className="text-xs font-black text-gray-900 truncate">{displayName}</p>
                     <p className="text-[10px] font-black text-[#CC1122] mt-1 flex items-center gap-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#CC1122] shrink-0 stroke-[2.2]" />
                       <span>Super Admin</span>
