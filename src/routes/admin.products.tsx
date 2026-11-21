@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Plus, Search, UtensilsCrossed, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Search, UtensilsCrossed, Trash2, CheckCircle2, XCircle, X, Check } from "lucide-react";
 import {
   getFirestoreProducts,
   upsertFirestoreProduct,
   deleteFirestoreProduct,
 } from "@/lib/firebase-data";
 import { isFirebaseConfigured, type ProductDoc } from "@/lib/firebase";
-import { products as mockProducts, menuCategories, formatSom } from "@/lib/mock-data";
+import { products as mockProducts, menuCategories, formatSom, restaurants as mockRestaurants } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,15 @@ function AdminProductsPage() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState<string>("Burgerlar");
   const [restaurant, setRestaurant] = useState("Evos");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -88,7 +97,7 @@ function AdminProductsPage() {
       name: name.trim(),
       description: description.trim() || "Yangi mazali fast-food taomi",
       price: parseInt(price, 10) || 25000,
-      image: mockProducts[0]?.image || "",
+      image: photoPreview || mockProducts[0]?.image || "",
       category,
       restaurantId: restaurant.toLowerCase().replace(/\s+/g, ""),
       restaurant,
@@ -105,6 +114,7 @@ function AdminProductsPage() {
     setName("");
     setDescription("");
     setPrice("");
+    setPhotoPreview(null);
     setIsModalOpen(false);
   };
 
@@ -231,96 +241,190 @@ function AdminProductsPage() {
         ))}
       </div>
 
-      {/* Modal - Yangi Taom Qo'shish */}
+      {/* Modal - Yangi Taom Qo'shish (University-Admin StudentFormModal Pixel-Perfect Match) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-3xl bg-card p-6 shadow-2xl border border-border">
-            <h3 className="font-display text-lg font-bold">Yangi Taom Qo'shish</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Menyuga yangi fast-food taomi qo'shish formasi.</p>
-
-            <form onSubmit={handleAddProduct} className="mt-4 space-y-3.5">
-              <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-1">Taom Nomi</label>
-                <input
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Masalan: Double Cheeseburger"
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-1">Restoran / Fast-food xona</label>
-                <select
-                  value={restaurant}
-                  onChange={(e) => setRestaurant(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs outline-none focus:border-primary"
-                >
-                  {["Evos", "Max Way", "Oqtepa Lavash", "Bellissimo", "Les Ailes", "Chopar Pizza", "Burger House", "Tovuq City"].map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200/80 animate-scaleUp max-h-[92vh] overflow-hidden flex flex-col text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center border shrink-0 bg-orange-50 text-[#F97316] border-orange-200/60">
+                  <UtensilsCrossed className="w-5 h-5" />
+                </div>
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1">Kategoriya</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs outline-none focus:border-primary"
+                  <h3 className="font-semibold text-slate-900 text-sm leading-tight">
+                    Yangi Taom Qo'shish
+                  </h3>
+                  <p className="text-xs text-slate-500 font-normal mt-0.5">
+                    Menyuga yangi taom kiritiladi
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer text-slate-500"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <div className="overflow-y-auto no-scrollbar px-6 py-4 flex-1">
+              <form id="product-form" onSubmit={handleAddProduct} className="space-y-4">
+                {/* Photo Upload & Name */}
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="photo-upload"
+                    className="relative shrink-0 cursor-pointer block group"
+                    title="Rasm yuklash"
                   >
-                    {menuCategories.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                    <div
+                      className={`w-16 h-16 rounded-2xl border-2 border-dashed overflow-hidden flex items-center justify-center transition-all group-hover:border-[#F97316] group-hover:bg-orange-50/50 ${
+                        photoPreview ? "border-orange-300 bg-orange-50" : "border-slate-200 bg-slate-50"
+                      }`}
+                    >
+                      {photoPreview ? (
+                        <img src={photoPreview} alt="Taom rasmi" className="w-full h-full object-cover" />
+                      ) : (
+                        <UtensilsCrossed className="w-7 h-7 text-slate-300 group-hover:text-[#F97316] transition-colors" />
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#F97316] group-hover:bg-[#ea580c] text-white flex items-center justify-center shadow-sm transition-colors">
+                      <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                    <input
+                      id="photo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhoto}
+                      className="hidden"
+                    />
+                  </label>
+                  <div className="flex-1">
+                    <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                      Taom Nomi *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Masalan: Double Cheeseburger"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="student-modal-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 transition-all placeholder-slate-400"
+                    />
+                  </div>
                 </div>
 
+                {/* Restoran & Narxi */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                      Restoran / Fast-food xona *
+                    </label>
+                    <select
+                      value={restaurant}
+                      onChange={(e) => setRestaurant(e.target.value)}
+                      className="student-modal-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 transition-all"
+                    >
+                      {(mockRestaurants.length > 0
+                        ? mockRestaurants.map((r) => r.name)
+                        : ["Evos", "Max Way", "Oqtepa Lavash", "Bellissimo", "Les Ailes", "Chopar Pizza", "Burger House", "Tovuq City"]
+                      ).map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                      Narxi (UZS) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="35000"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="student-modal-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 transition-all placeholder-slate-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Kategoriya & Holati */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                      Kategoriya *
+                    </label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="student-modal-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 transition-all"
+                    >
+                      {menuCategories.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                      Holati *
+                    </label>
+                    <select
+                      className="student-modal-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 transition-all"
+                      defaultValue="active"
+                    >
+                      <option value="active">Mavjud (Sotuvda)</option>
+                      <option value="inactive">Tugagan (Nofaol)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Tavsif (Masalliqlar) */}
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1">Narxi (UZS)</label>
-                  <input
-                    required
-                    type="number"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="35000"
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs outline-none focus:border-primary"
+                  <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                    Tavsif (Masalliqlar)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Mol go'shti, cheddar pishlog'i, pomidor va maxsus sous..."
+                    className="student-modal-input w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 transition-all placeholder-slate-400 resize-none leading-relaxed"
                   />
                 </div>
-              </div>
+              </form>
+            </div>
 
-              <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-1">Tavsif (Masalliqlar)</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Mol go'shti, cheddar pishlog'i, pomidor va maxsus sous"
-                  rows={2}
-                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs outline-none focus:border-primary"
-                />
-              </div>
-
-              <div className="flex gap-2.5 pt-2">
-                <Button
-                  type="button"
-                  variant="unstyled"
-                  size="unset"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 rounded-xl bg-muted py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted/80"
-                >
-                  Bekor qilish
-                </Button>
-                <Button
-                  type="submit"
-                  variant="unstyled"
-                  size="unset"
-                  className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90"
-                >
-                  Saqlash
-                </Button>
-              </div>
-            </form>
+            {/* Footer */}
+            <div className="px-6 pb-6 pt-4 border-t border-slate-100 shrink-0 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium text-xs hover:bg-slate-200 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <X className="w-4 h-4" />
+                Bekor qilish
+              </button>
+              <button
+                type="submit"
+                form="product-form"
+                className="flex-1 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#ea580c] active:scale-95 text-white font-medium text-xs transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Check className="w-4 h-4" />
+                Saqlash
+              </button>
+            </div>
           </div>
         </div>
       )}

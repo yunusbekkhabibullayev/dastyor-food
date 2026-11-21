@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useLocation, useNavigate, useHydrated } from "@tanstack/react-router";
+﻿import { createFileRoute, Outlet, useLocation, useNavigate, useHydrated } from "@tanstack/react-router";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminLoginScreen } from "@/components/admin/AdminLoginScreen";
 import { useIsAdminAuthenticated } from "@/lib/admin-auth";

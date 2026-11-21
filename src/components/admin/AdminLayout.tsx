@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -151,14 +151,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             className="flex items-center gap-3 min-w-0"
             onClick={() => setSidebarOpen(false)}
           >
-            <div className="w-9 h-9 rounded-2xl bg-[#CC1122] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-[#CC1122]/30">
+            <div className="w-9 h-9 rounded-2xl bg-[#F97316] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-[#F97316]/30">
               D
             </div>
             <div className="flex flex-col min-w-0 text-left">
               <h2 className="font-extrabold text-xs text-gray-900 truncate leading-tight tracking-tight">
                 Dastyor Food
               </h2>
-              <span className="text-[10px] text-[#CC1122] font-black uppercase tracking-wider block mt-0.5">
+              <span className="text-[10px] text-[#F97316] font-black uppercase tracking-wider block mt-0.5">
                 Admin Panel
               </span>
             </div>
@@ -196,8 +196,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     className={cn(
                       "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer",
                       isActive
-                        ? "bg-[#CC1122] text-white shadow-md shadow-[#CC1122]/20 font-black"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-[#FFF0F1]/50 hover:text-[#CC1122]",
+                        ? "bg-[#F97316] text-white shadow-md shadow-[#F97316]/20 font-black"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-[#FFF7ED]/50 hover:text-[#F97316]",
                     )}
                   >
                     <Icon
@@ -233,16 +233,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               type="button"
               onClick={handleSeed}
               disabled={isSeeding}
-              className="p-1.5 hover:bg-[#FFF0F1] text-gray-400 hover:text-[#CC1122] rounded-xl transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-[#FFF7ED] text-gray-400 hover:text-[#F97316] rounded-xl transition-colors cursor-pointer"
               title="Bazani sinxronlash"
             >
-              <RefreshCw className={cn("w-4 h-4", isSeeding && "animate-spin text-[#CC1122]")} />
+              <RefreshCw className={cn("w-4 h-4", isSeeding && "animate-spin text-[#F97316]")} />
             </button>
           )}
 
           <Link
             to="/admin/settings"
-            className="p-1.5 hover:bg-[#FFF0F1] text-gray-400 hover:text-[#CC1122] rounded-xl transition-colors cursor-pointer"
+            className="p-1.5 hover:bg-[#FFF7ED] text-gray-400 hover:text-[#F97316] rounded-xl transition-colors cursor-pointer"
             title="Sozlamalar"
           >
             <Settings className="w-4 h-4" />
@@ -267,7 +267,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </button>
 
             {/* Active Tab Icon Badge */}
-            <div className="w-8 h-8 rounded-xl bg-[#FFF0F1] text-[#CC1122] flex items-center justify-center border border-[#FFE4E6] shadow-2xs shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#FFF7ED] text-[#F97316] flex items-center justify-center border border-[#FFEDD5] shadow-2xs shrink-0">
               <ActiveIcon className="w-4 h-4 stroke-[2.2]" />
             </div>
 
@@ -282,10 +282,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             {/* Saytga qaytish Button */}
             <Link
               to="/home"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF0F1] hover:bg-[#ffe4e6] text-[#CC1122] active:scale-95 font-black text-xs rounded-xl transition-all border border-[#FFE4E6] cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF7ED] hover:bg-[#FFEDD5] text-[#F97316] active:scale-95 font-black text-xs rounded-xl transition-all border border-[#FFEDD5] cursor-pointer shadow-2xs"
               title="Saytga o'tish"
             >
-              <StoreIcon className="w-4 h-4 text-[#CC1122] shrink-0 stroke-[2.2]" />
+              <StoreIcon className="w-4 h-4 text-[#F97316] shrink-0 stroke-[2.2]" />
               <span className="hidden sm:inline">Saytga qaytish</span>
             </Link>
 
@@ -314,7 +314,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       onClick={() => selectLanguage("uz")}
                       className={cn(
                         "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer",
-                        currentLang === "uz" ? "bg-[#FFF0F1] text-[#CC1122] font-black" : "text-gray-700 hover:bg-gray-100",
+                        currentLang === "uz" ? "bg-[#FFF7ED] text-[#F97316] font-black" : "text-gray-700 hover:bg-gray-100",
                       )}
                     >
                       <LanguageFlag lang="uz" className="w-5 h-3.5 object-cover rounded-xs border border-gray-200" />
@@ -325,7 +325,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       onClick={() => selectLanguage("ru")}
                       className={cn(
                         "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer",
-                        currentLang === "ru" ? "bg-[#FFF0F1] text-[#CC1122] font-black" : "text-gray-700 hover:bg-gray-100",
+                        currentLang === "ru" ? "bg-[#FFF7ED] text-[#F97316] font-black" : "text-gray-700 hover:bg-gray-100",
                       )}
                     >
                       <LanguageFlag lang="ru" className="w-5 h-3.5 object-cover rounded-xs border border-gray-200" />
@@ -336,7 +336,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       onClick={() => selectLanguage("en")}
                       className={cn(
                         "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer",
-                        currentLang === "en" ? "bg-[#FFF0F1] text-[#CC1122] font-black" : "text-gray-700 hover:bg-gray-100",
+                        currentLang === "en" ? "bg-[#FFF7ED] text-[#F97316] font-black" : "text-gray-700 hover:bg-gray-100",
                       )}
                     >
                       <LanguageFlag lang="en" className="w-5 h-3.5 object-cover rounded-xs border border-gray-200" />
@@ -354,7 +354,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 onClick={() => setProfileDropdownOpen((prev) => !prev)}
                 className="flex items-center gap-2 border-l pl-2 sm:pl-3 border-gray-150 hover:bg-gray-50 py-1 px-1.5 sm:px-2 rounded-2xl transition-all cursor-pointer select-none"
               >
-                <div className="w-8 h-8 rounded-2xl bg-[#CC1122] text-white flex items-center justify-center font-black text-xs shadow-sm shadow-[#CC1122]/20">
+                <div className="w-8 h-8 rounded-2xl bg-[#F97316] text-white flex items-center justify-center font-black text-xs shadow-sm shadow-[#F97316]/20">
                   A
                 </div>
                 <div className="hidden md:flex flex-col text-left">
@@ -367,8 +367,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       )}
                     />
                   </span>
-                  <span className="text-[10px] text-[#CC1122] font-black uppercase tracking-wider flex items-center gap-1 mt-0.5">
-                    <ShieldCheck className="w-3 h-3 text-[#CC1122] shrink-0 stroke-[2.2]" />
+                  <span className="text-[10px] text-[#F97316] font-black uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                    <ShieldCheck className="w-3 h-3 text-[#F97316] shrink-0 stroke-[2.2]" />
                     <span>Super Admin</span>
                   </span>
                 </div>
@@ -377,10 +377,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Profile Dropdown Popup Menu */}
               {profileDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-3xl shadow-xl border border-gray-150 py-1.5 z-50 animate-scaleUp text-left">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-[#FFF0F1]/40 rounded-t-3xl">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-[#FFF7ED]/40 rounded-t-3xl">
                     <p className="text-xs font-black text-gray-900 truncate">{displayName}</p>
-                    <p className="text-[10px] font-black text-[#CC1122] mt-1 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#CC1122] shrink-0 stroke-[2.2]" />
+                    <p className="text-[10px] font-black text-[#F97316] mt-1 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#F97316] shrink-0 stroke-[2.2]" />
                       <span>Super Admin</span>
                     </p>
                   </div>
@@ -389,9 +389,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     <Link
                       to="/admin/settings"
                       onClick={() => setProfileDropdownOpen(false)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 hover:bg-[#FFF0F1] hover:text-[#CC1122] font-bold transition-colors cursor-pointer"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 hover:bg-[#FFF7ED] hover:text-[#F97316] font-bold transition-colors cursor-pointer"
                     >
-                      <User className="w-4 h-4 text-[#CC1122] shrink-0" />
+                      <User className="w-4 h-4 text-[#F97316] shrink-0" />
                       <span>Profil & Sozlamalar</span>
                     </Link>
 
@@ -402,9 +402,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                           setProfileDropdownOpen(false);
                           handleSeed();
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 hover:bg-[#FFF0F1] hover:text-[#CC1122] font-bold transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 hover:bg-[#FFF7ED] hover:text-[#F97316] font-bold transition-colors cursor-pointer"
                       >
-                        <RefreshCw className="w-4 h-4 text-[#CC1122] shrink-0" />
+                        <RefreshCw className="w-4 h-4 text-[#F97316] shrink-0" />
                         <span>Bazani sinxronlash</span>
                       </button>
                     )}
@@ -441,7 +441,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             className={cn(
               "flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all",
               location.pathname === "/admin" || location.pathname === "/admin/"
-                ? "text-[#CC1122] font-black scale-105"
+                ? "text-[#F97316] font-black scale-105"
                 : "text-gray-500 font-medium",
             )}
           >
@@ -454,7 +454,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             className={cn(
               "flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all",
               location.pathname.startsWith("/admin/orders")
-                ? "text-[#CC1122] font-black scale-105"
+                ? "text-[#F97316] font-black scale-105"
                 : "text-gray-500 font-medium",
             )}
           >
@@ -467,7 +467,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             className={cn(
               "flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all",
               location.pathname.startsWith("/admin/products")
-                ? "text-[#CC1122] font-black scale-105"
+                ? "text-[#F97316] font-black scale-105"
                 : "text-gray-500 font-medium",
             )}
           >

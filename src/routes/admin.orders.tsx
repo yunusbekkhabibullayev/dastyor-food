@@ -103,12 +103,12 @@ function AdminOrdersPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">(() => {
     if (typeof window !== "undefined") {
       try {
-        return (localStorage.getItem("dastyor_admin_orders_view") as "grid" | "table") || "grid";
+        return (localStorage.getItem("dastyor_admin_orders_view") as "grid" | "table") || "table";
       } catch {
-        return "grid";
+        return "table";
       }
     }
-    return "grid";
+    return "table";
   });
 
   const handleSetViewMode = (mode: "grid" | "table") => {
@@ -383,13 +383,14 @@ function AdminOrdersPage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 sm:gap-3">
           {/* Search Input */}
           <div className="relative flex-1 min-w-[260px]">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Mijoz ismi, ID (#34), telefon yoki manzil..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-9 py-2.5 bg-gray-50 hover:bg-white focus:bg-white border border-gray-200 rounded-2xl text-xs font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#CC1122] transition-all shadow-2xs"
+              style={{ fontSize: "11px" }}
+              className="w-full pl-9 pr-8 py-1.5 admin-input bg-gray-50 hover:bg-white focus:bg-white border border-gray-200 rounded-2xl font-normal text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#F97316] transition-all shadow-2xs"
             />
             {search && (
               <button
@@ -404,9 +405,7 @@ function AdminOrdersPage() {
 
           {/* Quick Date Presets + Refresh Button */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0">
-            <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
-              Sana:
-            </span>
+            <span className="shrink-0 mr-1 hidden sm:inline" />
 
             {[
               { id: "all", label: "Barchasi" },
@@ -443,10 +442,10 @@ function AdminOrdersPage() {
               type="button"
               onClick={() => loadOrders(true)}
               disabled={refreshing}
-              className="p-2 bg-gray-50 hover:bg-[#FFF0F1] hover:text-[#CC1122] active:scale-95 text-gray-600 border border-gray-200 rounded-xl transition-all shadow-2xs shrink-0 cursor-pointer ml-0.5"
+              className="p-2 bg-gray-50 hover:bg-[#FFF7ED] hover:text-[#F97316] active:scale-95 text-gray-600 border border-gray-200 rounded-xl transition-all shadow-2xs shrink-0 cursor-pointer ml-0.5"
               title="Yangilash"
             >
-              <RotateCw className={`w-4 h-4 ${refreshing ? "animate-spin text-[#CC1122]" : ""}`} />
+              <RotateCw className={`w-4 h-4 ${refreshing ? "animate-spin text-[#F97316]" : ""}`} />
             </button>
           </div>
         </div>
@@ -460,7 +459,8 @@ function AdminOrdersPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-[#CC1122]"
+                style={{ fontSize: "11px" }}
+                className="w-full px-2.5 py-1 admin-input bg-white border border-gray-200 rounded-xl font-normal text-gray-900 focus:outline-none focus:border-[#F97316]"
               />
             </div>
             <div>
@@ -469,7 +469,8 @@ function AdminOrdersPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-[#CC1122]"
+                style={{ fontSize: "11px" }}
+                className="w-full px-2.5 py-1 admin-input bg-white border border-gray-200 rounded-xl font-normal text-gray-900 focus:outline-none focus:border-[#F97316]"
               />
             </div>
           </div>
@@ -511,7 +512,7 @@ function AdminOrdersPage() {
                 onClick={() => setSelectedRestaurant(res.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
                   isSelected
-                    ? "bg-[#CC1122] text-white shadow-xs font-black"
+                    ? "bg-[#F97316] text-white shadow-xs font-black"
                     : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200/80"
                 }`}
               >
@@ -557,7 +558,7 @@ function AdminOrdersPage() {
                 onClick={() => setSelectedStatus(st.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer ${
                   selectedStatus === st.id
-                    ? "bg-[#CC1122] text-white shadow-xs font-black"
+                    ? "bg-[#F97316] text-white shadow-xs font-black"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 }`}
               >
@@ -583,7 +584,7 @@ function AdminOrdersPage() {
               onClick={() => handleSetViewMode("grid")}
               className={`p-1.5 rounded-xl transition-all cursor-pointer ${
                 viewMode === "grid"
-                  ? "bg-white text-[#CC1122] shadow-2xs font-black"
+                  ? "bg-white text-[#F97316] shadow-2xs font-black"
                   : "text-gray-500 hover:text-gray-800"
               }`}
               title="Karta ko'rinishi"
@@ -595,7 +596,7 @@ function AdminOrdersPage() {
               onClick={() => handleSetViewMode("table")}
               className={`p-1.5 rounded-xl transition-all cursor-pointer ${
                 viewMode === "table"
-                  ? "bg-white text-[#CC1122] shadow-2xs font-black"
+                  ? "bg-white text-[#F97316] shadow-2xs font-black"
                   : "text-gray-500 hover:text-gray-800"
               }`}
               title="Jadval ko'rinishi"
@@ -664,7 +665,7 @@ function AdminOrdersPage() {
                     key={order.id}
                     className={`bg-white border rounded-3xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 space-y-3.5 ${
                       isSelected
-                        ? "border-rose-300 ring-2 ring-rose-100"
+                        ? "border-[#F97316]/50 ring-2 ring-[#FFF7ED]"
                         : "border-gray-150 hover:border-gray-250"
                     }`}
                   >
@@ -675,7 +676,7 @@ function AdminOrdersPage() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelectOrder(order.id)}
-                          className="w-4 h-4 text-[#CC1122] rounded border-gray-300 focus:ring-[#CC1122] cursor-pointer mr-0.5"
+                          className="w-4 h-4 text-[#F97316] rounded border-gray-300 focus:ring-[#F97316] cursor-pointer mr-0.5"
                         />
 
                         <span className="px-2.5 py-1 rounded-xl bg-gray-900 text-white font-mono font-black text-xs shadow-2xs">
@@ -683,7 +684,7 @@ function AdminOrdersPage() {
                         </span>
 
                         {/* Restaurant Tag */}
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#FFF0F1] text-[#CC1122] border border-[#FFE4E6]">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#FFF7ED] text-[#F97316] border border-[#FFEDD5]">
                           {restaurant?.logo ? (
                             <img
                               src={restaurant.logo}
@@ -742,7 +743,7 @@ function AdminOrdersPage() {
 
                       {/* Right: Address Info */}
                       <div className="flex items-start gap-2.5 text-xs text-gray-600 bg-gray-50/60 p-2.5 rounded-2xl border border-gray-100">
-                        <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                        <MapPin className="w-4 h-4 text-[#F97316] shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
                           <p className="font-bold text-gray-800 line-clamp-2 leading-relaxed">
                             {order.customer?.address || "Manzil ko'rsatilmagan"}
@@ -753,7 +754,7 @@ function AdminOrdersPage() {
                                 href={mapLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] font-black text-rose-600 hover:text-rose-700 hover:underline bg-white px-2 py-0.5 rounded-md border border-rose-200 shadow-2xs"
+                                className="inline-flex items-center gap-1 text-[11px] font-black text-[#F97316] hover:text-[#ea580c] hover:underline bg-white px-2 py-0.5 rounded-md border border-[#FFEDD5] shadow-2xs"
                               >
                                 <span>Xarita</span>
                                 <ExternalLink className="w-2.5 h-2.5" />
@@ -919,7 +920,7 @@ function AdminOrdersPage() {
                       <button
                         type="button"
                         onClick={() => setModalOrder(order)}
-                        className="px-4 py-2 bg-gray-50 hover:bg-gray-100 hover:text-[#CC1122] active:scale-95 text-gray-700 text-xs font-extrabold rounded-xl border border-gray-200 transition-all cursor-pointer min-h-[38px] flex items-center gap-1.5 shadow-2xs"
+                        className="px-4 py-2 bg-gray-50 hover:bg-gray-100 hover:text-[#F97316] active:scale-95 text-gray-700 text-xs font-extrabold rounded-xl border border-gray-200 transition-all cursor-pointer min-h-[38px] flex items-center gap-1.5 shadow-2xs"
                       >
                         <Eye className="w-4 h-4 text-gray-500 stroke-[2.2]" />
                         <span>Batafsil</span>
@@ -941,7 +942,7 @@ function AdminOrdersPage() {
                           type="checkbox"
                           checked={allPaginatedSelected}
                           onChange={toggleSelectAll}
-                          className="w-4 h-4 text-[#CC1122] rounded border-gray-300 focus:ring-[#CC1122] cursor-pointer"
+                          className="w-4 h-4 text-[#F97316] rounded border-gray-300 focus:ring-[#F97316] cursor-pointer"
                         />
                       </th>
                       <th className="py-3.5 px-4 w-16">#ID</th>
@@ -965,7 +966,7 @@ function AdminOrdersPage() {
                         <tr
                           key={order.id}
                           className={`hover:bg-gray-50/80 transition-colors group cursor-pointer ${
-                            isSelected ? "bg-rose-50/40" : ""
+                            isSelected ? "bg-[#FFF7ED]/60" : ""
                           }`}
                           onClick={() => setModalOrder(order)}
                         >
@@ -977,7 +978,7 @@ function AdminOrdersPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleSelectOrder(order.id)}
-                              className="w-4 h-4 text-[#CC1122] rounded border-gray-300 focus:ring-[#CC1122] cursor-pointer"
+                              className="w-4 h-4 text-[#F97316] rounded border-gray-300 focus:ring-[#F97316] cursor-pointer"
                             />
                           </td>
 
@@ -1041,7 +1042,7 @@ function AdminOrdersPage() {
                                 e.stopPropagation();
                                 setModalOrder(order);
                               }}
-                              className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 hover:text-[#CC1122] active:scale-95 text-gray-700 text-xs font-black rounded-xl border border-gray-200 transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                              className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 hover:text-[#F97316] active:scale-95 text-gray-700 text-xs font-black rounded-xl border border-gray-200 transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
                             >
                               <Eye className="w-3.5 h-3.5 text-gray-500 stroke-[2.2]" />
                               <span>Batafsil</span>
@@ -1066,7 +1067,7 @@ function AdminOrdersPage() {
       ) : (
         /* Empty State */
         <div className="py-16 text-center bg-white border border-gray-150 rounded-3xl shadow-xs space-y-3">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FFF0F1] text-[#CC1122] flex items-center justify-center border border-[#FFE4E6]">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FFF7ED] text-[#F97316] flex items-center justify-center border border-[#FFEDD5]">
             <ShoppingBag className="w-8 h-8 stroke-[2]" />
           </div>
           <h3 className="text-sm font-bold text-gray-700">Buyurtmalar topilmadi</h3>
@@ -1085,7 +1086,7 @@ function AdminOrdersPage() {
                 setEndDate("");
                 setShowCustomDate(false);
               }}
-              className="px-4 py-2 bg-[#FFF0F1] text-[#CC1122] hover:bg-[#FFE4E6] active:scale-95 rounded-xl text-xs font-bold transition-all border border-[#FFE4E6] cursor-pointer"
+              className="px-4 py-2 bg-[#FFF7ED] text-[#F97316] hover:bg-[#FFEDD5] active:scale-95 rounded-xl text-xs font-bold transition-all border border-[#FFEDD5] cursor-pointer"
             >
               Filtrlarni tozalash
             </button>
@@ -1102,7 +1103,7 @@ function AdminOrdersPage() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100 bg-gray-50/60">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#FFF0F1] text-[#CC1122] flex items-center justify-center font-bold border border-[#FFE4E6] shadow-2xs">
+                <div className="w-10 h-10 rounded-2xl bg-[#FFF7ED] text-[#F97316] flex items-center justify-center font-bold border border-[#FFEDD5] shadow-2xs">
                   <ShoppingBag className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <div>
@@ -1138,7 +1139,7 @@ function AdminOrdersPage() {
                   </span>
                   <a
                     href={`tel:${modalOrder.customer?.phone}`}
-                    className="font-mono font-bold text-[#CC1122] hover:underline"
+                    className="font-mono font-bold text-[#F97316] hover:underline"
                   >
                     {modalOrder.customer?.phone || "—"}
                   </a>
@@ -1198,7 +1199,7 @@ function AdminOrdersPage() {
                 </div>
                 <div className="pt-2 border-t border-gray-200 flex justify-between items-center text-sm">
                   <span className="font-black text-gray-900">Jami to'lov:</span>
-                  <span className="font-black text-[#CC1122] text-base font-mono">
+                  <span className="font-black text-[#F97316] text-base font-mono">
                     {formatPrice(modalOrder.total)} so'm
                   </span>
                 </div>

@@ -262,6 +262,24 @@ textarea,
 select {
   font-size: 16px;
 }
+
+/* Admin modal inputlari (university-admin uslubidagi text-xs 12px) */
+.student-modal-input,
+input.student-modal-input,
+select.student-modal-input,
+textarea.student-modal-input {
+  font-size: 12px !important;
+  line-height: 1.25rem !important;
+  font-weight: 500 !important;
+}
+
+.student-modal-input::placeholder,
+input.student-modal-input::placeholder,
+textarea.student-modal-input::placeholder {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: #94a3b8 !important;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

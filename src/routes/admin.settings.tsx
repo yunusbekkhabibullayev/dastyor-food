@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Settings, ShieldCheck, Database, RefreshCw } from "lucide-react";
 import { isFirebaseConfigured } from "@/lib/firebase";

@@ -1,4 +1,4 @@
-export interface AdminPaginationProps {
+﻿export interface AdminPaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -39,8 +39,8 @@ export function AdminPagination({ currentPage, totalPages, onPageChange }: Admin
           onClick={() => onPageChange(p)}
           className={`inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-xl border text-xs font-black transition-all active:scale-95 cursor-pointer ${
             currentPage === p
-              ? "bg-[#CC1122] text-white border-[#CC1122] shadow-xs"
-              : "bg-white text-gray-700 border-gray-200 hover:bg-[#FFF0F1] hover:text-[#CC1122]"
+              ? "bg-[#F97316] text-white border-[#F97316] shadow-xs"
+              : "bg-white text-gray-700 border-gray-200 hover:bg-[#FFF7ED] hover:text-[#F97316]"
           }`}
         >
           {p}

@@ -99,7 +99,7 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3.5 sm:pb-4">
         <div className="text-left space-y-0.5">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FFF0F1] text-[#CC1122] flex items-center justify-center border border-[#FFE4E6] shadow-2xs shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#FFF7ED] text-[#F97316] flex items-center justify-center border border-[#FFEDD5] shadow-2xs shrink-0">
               <BarChart3 className="w-4 h-4 stroke-[2.2]" />
             </div>
             <h3 className="font-black text-gray-900 text-sm sm:text-base tracking-tight">
@@ -120,7 +120,7 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
               onClick={() => setActiveMetric("revenue")}
               className={`px-2.5 sm:px-3 py-1 text-[11px] font-black rounded-xl transition-all cursor-pointer ${
                 activeMetric === "revenue"
-                  ? "bg-white text-[#CC1122] shadow-2xs"
+                  ? "bg-white text-[#F97316] shadow-2xs"
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -131,7 +131,7 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
               onClick={() => setActiveMetric("count")}
               className={`px-2.5 sm:px-3 py-1 text-[11px] font-black rounded-xl transition-all cursor-pointer ${
                 activeMetric === "count"
-                  ? "bg-white text-[#CC1122] shadow-2xs"
+                  ? "bg-white text-[#F97316] shadow-2xs"
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -148,7 +148,7 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
                 onClick={() => setPeriod(p as 7 | 14 | 30)}
                 className={`px-2.5 py-1 text-[11px] font-black rounded-xl transition-all cursor-pointer ${
                   period === p
-                    ? "bg-[#CC1122] text-white shadow-sm shadow-[#CC1122]/20"
+                    ? "bg-[#F97316] text-white shadow-sm shadow-[#F97316]/20"
                     : "text-gray-500 hover:text-gray-900"
                 }`}
               >
@@ -183,7 +183,7 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
           <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
             Eng yuqori kun
           </span>
-          <span className="text-sm sm:text-base font-black text-[#CC1122] block mt-0.5 truncate">
+          <span className="text-sm sm:text-base font-black text-[#F97316] block mt-0.5 truncate">
             {peakDay ? `${formatPrice(peakDay.revenue)} UZS` : "0 UZS"}
           </span>
         </div>
@@ -216,7 +216,7 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
               {isHovered && (
                 <div className="absolute -top-12 z-20 bg-gray-900 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl shadow-xl whitespace-nowrap pointer-events-none transform -translate-x-1/2 left-1/2">
                   <div className="text-[9px] text-gray-300">{d.label}</div>
-                  <div className="text-[#ff4d5e]">
+                  <div className="text-[#F97316]">
                     {activeMetric === "revenue" ? `${formatPrice(d.revenue)} UZS` : `${d.count} ta buyurtma`}
                   </div>
                 </div>
@@ -227,9 +227,9 @@ export function AdminSalesChart({ orders = [] }: { orders: OrderDoc[] }) {
                 style={{ height: `${heightPercent}%` }}
                 className={`w-full max-w-[36px] rounded-t-xl transition-all duration-300 ${
                   isHovered
-                    ? "bg-[#CC1122] shadow-md shadow-[#CC1122]/30 scale-105"
+                    ? "bg-[#F97316] shadow-md shadow-[#F97316]/30 scale-105"
                     : val > 0
-                      ? "bg-gradient-to-t from-[#CC1122]/70 to-[#CC1122] hover:bg-[#CC1122]"
+                      ? "bg-gradient-to-t from-[#F97316]/70 to-[#F97316] hover:bg-[#F97316]"
                       : "bg-gray-100 hover:bg-gray-200"
                 }`}
               />
