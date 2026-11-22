@@ -19,6 +19,7 @@ import {
   matches,
   type Product,
 } from "@/lib/mock-data";
+import { useFoodData } from "@/lib/use-food-data";
 
 export const Route = createFileRoute("/restaurants/$restaurantId")({
   loader: ({ params }) => {
@@ -57,7 +58,26 @@ export const Route = createFileRoute("/restaurants/$restaurantId")({
 
 function RestaurantPage() {
   const { r } = Route.useLoaderData();
-  const menu = useMemo(() => getMenu(r.id), [r.id]);
+  const { products } = useFoodData();
+  const menu = useMemo(() => {
+    const liveItems = products.filter(
+      (p) =>
+        p.restaurantId === r.id ||
+        p.restaurant?.toLowerCase() === r.name?.toLowerCase() ||
+        p.restaurantId?.toLowerCase() === r.name?.toLowerCase().replace(/\s+/g, ""),
+    );
+    return liveItems.length > 0 ? liveItems : getMenu(r.id);
+  }, [products, r.id, r.name]);
+
+  const restaurantCategories = useMemo(() => {
+    const cats = new Set<string>();
+    r.tags?.forEach((t) => cats.add(t));
+    menu.forEach((p) => {
+      if (p.category) cats.add(p.category);
+    });
+    return ["Barchasi", ...Array.from(cats)];
+  }, [r.tags, menu]);
+
   const [cat, setCat] = useState("Barchasi");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<Product | null>(null);
@@ -142,7 +162,7 @@ function RestaurantPage() {
 
       <div className="pt-safe sticky top-0 z-30 space-y-3 bg-background/95 px-5 pb-3 backdrop-blur">
         <SearchInput value={q} onChange={setQ} placeholder={`${r.name} menyusidan qidirish...`} />
-        <Chips items={["Barchasi", ...r.tags]} value={cat} onChange={setCat} />
+        <Chips items={restaurantCategories} value={cat} onChange={setCat} />
       </div>
 
       <main className="px-5 pb-20">

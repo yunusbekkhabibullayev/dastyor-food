@@ -257,13 +257,18 @@ body {
   padding-left: max(env(safe-area-inset-left), var(--app-safe-left, 0px));
   padding-right: max(env(safe-area-inset-right), var(--app-safe-right, 0px));
 }
+/* Global input/textarea/select defaults */
 input,
 textarea,
 select {
-  font-size: 16px;
+  font-size: 14px;
 }
 
-/* Admin modal inputlari (university-admin uslubidagi text-xs 12px) */
+/* Admin inputlari, select va textarealari (12px bir xil standart) */
+.admin-input,
+input.admin-input,
+select.admin-input,
+textarea.admin-input,
 .student-modal-input,
 input.student-modal-input,
 select.student-modal-input,
@@ -273,10 +278,14 @@ textarea.student-modal-input {
   font-weight: 500 !important;
 }
 
+.admin-input::placeholder,
+input.admin-input::placeholder,
+textarea.admin-input::placeholder,
 .student-modal-input::placeholder,
 input.student-modal-input::placeholder,
 textarea.student-modal-input::placeholder {
-  font-size: 12px !important;
+  font-size: 11px !important;
+  line-height: 1.25rem !important;
   font-weight: 400 !important;
   color: #94a3b8 !important;
 }

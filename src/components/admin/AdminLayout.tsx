@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -65,7 +65,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     try {
       const res = await seedFirestoreData();
       toast.success(
-        `Firebase muvaffaqiyatli sinxronlandi! (${res.restaurants} restoran, ${res.products} taom, ${res.categories} kategoriya)`,
+        `Firebase muvaffaqiyatli sinxronlandi! (${res.restaurantsCount} restoran, ${res.productsCount} taom, ${res.categoriesCount} kategoriya)`,
       );
     } catch {
       toast.error("Ma'lumotlarni yuklashda xatolik yuz berdi");

@@ -218,20 +218,20 @@ export function AdminDashboard() {
         </div>
 
         {/* 2 Equal Columns Action Buttons */}
-        <div className="relative z-10 grid grid-cols-2 gap-2.5 w-full sm:w-auto self-stretch md:self-auto shrink-0">
+        <div className="relative z-10 flex items-center gap-2.5 w-full sm:w-auto shrink-0">
           <button
             type="button"
             onClick={() => loadData(true)}
             disabled={refreshing}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-[#FFF7ED] hover:text-[#F97316] active:scale-95 text-gray-700 border border-gray-200 rounded-2xl text-xs font-bold transition-all shadow-2xs cursor-pointer min-h-[42px]"
+            className="flex-1 sm:flex-initial min-w-[130px] sm:min-w-[145px] h-9 px-5 bg-gray-50 hover:bg-[#FFF7ED] hover:text-[#F97316] active:scale-95 text-gray-700 border border-gray-200 rounded-full text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center justify-center gap-2"
           >
-            <RefreshCw className={cn("w-4 h-4 text-gray-500 shrink-0", refreshing && "animate-spin text-[#F97316]")} />
+            <RefreshCw className={cn("w-3.5 h-3.5 text-gray-500 shrink-0", refreshing && "animate-spin text-[#F97316]")} />
             <span className="truncate">Yangilash</span>
           </button>
 
           <Link
             to="/admin/products"
-            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#F97316] hover:bg-[#ea6b00] active:scale-95 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-[#F97316]/20 transition-all cursor-pointer min-h-[42px]"
+            className="flex-1 sm:flex-initial min-w-[130px] sm:min-w-[145px] h-9 px-5 bg-[#F97316] hover:bg-[#ea6b00] active:scale-95 text-white rounded-full text-xs font-extrabold shadow-md shadow-[#F97316]/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
             <Plus className="w-4 h-4 shrink-0 stroke-[2.5]" />
             <span className="truncate">Yangi Taom</span>
@@ -241,11 +241,6 @@ export function AdminDashboard() {
 
       {/* ─── Fast-food Brand Switcher Bar (Barcha Oshxonalar) ─────────── */}
       <div className="bg-white border border-gray-150 rounded-3xl p-3 sm:p-4 shadow-2xs flex items-center gap-2 overflow-x-auto no-scrollbar">
-        <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 pl-1 mr-1">
-          <Store className="w-4 h-4 text-gray-400" />
-          <span>Oshxona:</span>
-        </span>
-
         <button
           type="button"
           onClick={() => setSelectedRestaurant("all")}

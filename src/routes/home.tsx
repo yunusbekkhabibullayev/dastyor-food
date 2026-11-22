@@ -4,7 +4,8 @@ import { useCallback, useMemo, useState } from "react";
 import { Search, ArrowRight, Star, Clock, ChevronRight, X } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { cn } from "@/lib/utils";
-import { categories, products, restaurants, type Product } from "@/lib/mock-data";
+import { type Product } from "@/lib/mock-data";
+import { useFoodData } from "@/lib/use-food-data";
 import { Chips, EmptyState, ProductCard, ProductSheet } from "@/components/app/food";
 import { BannerCarousel } from "@/components/app/BannerCarousel";
 import { RestaurantLogo } from "@/components/app/food";
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/home")({
 });
 
 function Home() {
+  const { categories, products, restaurants } = useFoodData();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("Barchasi");
   const [open, setOpen] = useState<Product | null>(null);
@@ -45,11 +47,11 @@ function Home() {
       restaurants
         .filter(
           (r) =>
-            (cat === "Barchasi" || r.tags.includes(cat as never)) &&
+            (cat === "Barchasi" || r.tags.includes(cat as never) || r.category === cat) &&
             (!q || r.name.toLowerCase().includes(q)),
         )
         .slice(0, 6),
-    [cat, q],
+    [cat, q, restaurants],
   );
   const shownProducts = useMemo(
     () =>
@@ -60,7 +62,7 @@ function Home() {
             (!q || `${p.name} ${p.restaurant}`.toLowerCase().includes(q)),
         )
         .slice(0, q ? 20 : 8),
-    [cat, q],
+    [cat, q, products],
   );
 
   return (

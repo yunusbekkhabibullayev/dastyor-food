@@ -1,11 +1,12 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, ProductCard, ProductSheet } from "@/components/app/food";
 import { Button } from "@/components/ui/button";
-import { products, type Product } from "@/lib/mock-data";
+import { type Product } from "@/lib/mock-data";
+import { useFoodData } from "@/lib/use-food-data";
 import { recommend, type Diet } from "@/lib/recommend";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -34,13 +35,14 @@ const budgets = [null, 25000, 40000, 60000];
 
 function RecommendPage() {
   const t = useT();
+  const { products } = useFoodData();
   const [craving, setCraving] = useState("");
   const [sel, setSel] = useState<Diet[]>([]);
   const [budget, setBudget] = useState<number | null>(null);
   const [open, setOpen] = useState<Product | null>(null);
   const list = useMemo(
     () => recommend(products, { craving, diets: sel, budget }),
-    [craving, sel, budget],
+    [products, craving, sel, budget],
   );
 
   return (

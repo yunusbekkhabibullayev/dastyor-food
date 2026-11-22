@@ -478,11 +478,6 @@ function AdminOrdersPage() {
 
         {/* ─── Multi-Restaurant Filter Bar (Fast-food brand separator) ─────── */}
         <div className="pt-2 border-t border-gray-100 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
-            <Store className="w-3.5 h-3.5 text-gray-400" />
-            <span>Oshxona:</span>
-          </span>
-
           <button
             type="button"
             onClick={() => setSelectedRestaurant("all")}

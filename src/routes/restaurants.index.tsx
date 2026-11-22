@@ -10,7 +10,8 @@ import {
   RestaurantCard,
   SearchInput,
 } from "@/components/app/food";
-import { categories, getMenu, matches, products, restaurants, type Product } from "@/lib/mock-data";
+import { getMenu, matches, type Product } from "@/lib/mock-data";
+import { useFoodData } from "@/lib/use-food-data";
 
 export const Route = createFileRoute("/restaurants/")({
   head: () => ({
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/restaurants/")({
 });
 
 function RestaurantsPage() {
+  const { categories, products, restaurants } = useFoodData();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("Barchasi");
   const [open, setOpen] = useState<Product | null>(null);
@@ -49,13 +51,13 @@ function RestaurantsPage() {
       const trimmed = q.trim();
       return restaurants.filter(
         (r) =>
-          (cat === "Barchasi" || r.tags.includes(cat as never)) &&
+          (cat === "Barchasi" || r.tags.includes(cat as never) || r.category === cat) &&
           (!trimmed ||
             matches(r.name, trimmed) ||
-            getMenu(r.id).some((p) => matches(p.name, trimmed))),
+            products.some((p) => (p.restaurantId === r.id || p.restaurant === r.name) && matches(p.name, trimmed))),
       );
     },
-    [q, cat],
+    [q, cat, restaurants, products],
   );
   const dishHits = useMemo(
     () => {
@@ -64,7 +66,7 @@ function RestaurantsPage() {
         ? products.filter((p) => matches(p.name, trimmed) && (cat === "Barchasi" || p.category === cat))
         : [];
     },
-    [q, cat],
+    [q, cat, products],
   );
 
   return (
