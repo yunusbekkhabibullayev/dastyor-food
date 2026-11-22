@@ -26,6 +26,8 @@ import {
   getFirestoreCategories,
   getFirestoreRestaurants,
 } from "@/lib/firebase-data";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { isFirebaseConfigured, type ProductDoc } from "@/lib/firebase";
 import {
   products as mockProducts,
@@ -95,41 +97,8 @@ function AdminProductsPage() {
   };
 
   useEffect(() => {
-    const load = async () => {
-      if (isFirebaseConfigured) {
-        const [liveProds, liveCats, liveRests] = await Promise.all([
-          getFirestoreProducts(),
-          getFirestoreCategories(),
-          getFirestoreRestaurants(),
-        ]);
-
-        if (liveCats && liveCats.length > 0) {
-          const sortedCats = [...liveCats]
-            .filter((c) => c.isActive !== false)
-            .sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0));
-          const catNames = sortedCats.map((c) => c.name);
-          setAvailableCategories(catNames);
-          if (catNames.length > 0) {
-            setCategory((prev) => (catNames.includes(prev) ? prev : catNames[0]));
-          }
-        }
-
-        if (liveRests && liveRests.length > 0) {
-          const sortedRests = [...liveRests]
-            .filter((r) => r.isActive !== false)
-            .sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0));
-          const restItems = sortedRests.map((r) => ({ id: r.id, name: r.name }));
-          setAvailableRestaurants(restItems);
-          if (restItems.length > 0) {
-            setRestaurant((prev) => (restItems.some((r) => r.name === prev) ? prev : restItems[0].name));
-          }
-        }
-
-        if (liveProds && liveProds.length > 0) {
-          setProducts(liveProds);
-          return;
-        }
-      }
+    if (!isFirebaseConfigured || !db) {
+      // Firebase yo'q — mock data ishlet
       setProducts(
         mockProducts.map((p) => ({
           id: p.id,
@@ -143,8 +112,75 @@ function AdminProductsPage() {
           isAvailable: true,
         })),
       );
+      return;
+    }
+
+    // Real-time kategoriyalar
+    const unsubCats = onSnapshot(
+      query(collection(db, "categories")),
+      (snap) => {
+        const cats = snap.docs.map((d) => d.data() as import("@/lib/firebase").CategoryDoc);
+        const sortedCats = cats
+          .filter((c) => c.isActive !== false)
+          .sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0));
+        const catNames = sortedCats.map((c) => c.name);
+        if (catNames.length > 0) {
+          setAvailableCategories(catNames);
+          setCategory((prev) => (catNames.includes(prev) ? prev : catNames[0]));
+          setEditCat((prev) => (catNames.includes(prev) ? prev : catNames[0]));
+        }
+      },
+      (err) => console.warn("Categories snapshot error:", err),
+    );
+
+    // Real-time restoranlar
+    const unsubRests = onSnapshot(
+      query(collection(db, "restaurants")),
+      (snap) => {
+        const rests = snap.docs.map((d) => d.data() as import("@/lib/firebase").RestaurantDoc);
+        const sortedRests = rests
+          .filter((r) => r.isActive !== false)
+          .sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0));
+        const restItems = sortedRests.map((r) => ({ id: r.id, name: r.name }));
+        if (restItems.length > 0) {
+          setAvailableRestaurants(restItems);
+          setRestaurant((prev) => (restItems.some((r) => r.name === prev) ? prev : restItems[0].name));
+          setEditRestaurant((prev) => (restItems.some((r) => r.name === prev) ? prev : restItems[0].name));
+        }
+      },
+      (err) => console.warn("Restaurants snapshot error:", err),
+    );
+
+    // Real-time taomlar
+    const unsubProds = onSnapshot(
+      query(collection(db, "products")),
+      (snap) => {
+        if (!snap.empty) {
+          setProducts(snap.docs.map((d) => d.data() as import("@/lib/firebase").ProductDoc));
+        } else {
+          setProducts(
+            mockProducts.map((p) => ({
+              id: p.id,
+              name: p.name,
+              description: p.description,
+              price: p.price,
+              image: p.image,
+              category: p.category,
+              restaurantId: p.restaurantId,
+              restaurant: p.restaurant,
+              isAvailable: true,
+            })),
+          );
+        }
+      },
+      (err) => console.warn("Products snapshot error:", err),
+    );
+
+    return () => {
+      unsubCats();
+      unsubRests();
+      unsubProds();
     };
-    void load();
   }, []);
 
   const handleToggle = async (p: ProductDoc) => {
