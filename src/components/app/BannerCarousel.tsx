@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState, useMemo } from "react";
 import { ArrowRight } from "lucide-react";
 import bannerBurger from "@/assets/banner-burger.jpg";
 import pizza from "@/assets/pizza.jpg";
 import lavash from "@/assets/lavash.jpg";
 import { cn } from "@/lib/utils";
+import { useFoodData } from "@/lib/use-food-data";
 
-const slides = [
+const defaultSlides = [
   {
     img: bannerBurger,
     badge: "-20% chegirma",
@@ -28,9 +29,27 @@ const slides = [
 ];
 
 export const BannerCarousel = memo(function BannerCarousel() {
+  const { banners } = useFoodData();
+
+  const slides = useMemo(() => {
+    if (banners && banners.length > 0) {
+      return banners.map((b) => ({
+        img: b.img || bannerBurger,
+        badge: b.badge || "Aksiya",
+        title: b.title,
+        text: b.text,
+      }));
+    }
+    return defaultSlides;
+  }, [banners]);
+
   const [i, setI] = useState(0);
   const paused = useRef(false);
   const startX = useRef<number | null>(null);
+
+  useEffect(() => {
+    setI((prev) => (prev >= slides.length ? 0 : prev));
+  }, [slides.length]);
 
   useEffect(() => {
     const onVisibilityChange = () => {
@@ -39,7 +58,7 @@ export const BannerCarousel = memo(function BannerCarousel() {
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     const t = setInterval(() => {
-      if (!paused.current && !document.hidden) {
+      if (!paused.current && !document.hidden && slides.length > 0) {
         setI((v) => (v + 1) % slides.length);
       }
     }, 4000);
@@ -48,7 +67,9 @@ export const BannerCarousel = memo(function BannerCarousel() {
       clearInterval(t);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, []);
+  }, [slides.length]);
+
+  if (slides.length === 0) return null;
 
   return (
     <section

@@ -32,6 +32,7 @@ import {
 import { isFirebaseConfigured, type OrderDoc } from "@/lib/firebase";
 import { cart } from "@/lib/cart-store";
 import { restaurants } from "@/lib/mock-data";
+import { useFoodData } from "@/lib/use-food-data";
 import { AdminPagination } from "@/components/admin/AdminPagination";
 import { toast } from "sonner";
 
@@ -88,6 +89,11 @@ function formatPrice(val?: number) {
 }
 
 function AdminOrdersPage() {
+  const { restaurants: liveRestaurants } = useFoodData();
+  const allRestaurants = useMemo(
+    () => (liveRestaurants.length > 0 ? liveRestaurants : restaurants),
+    [liveRestaurants],
+  );
   const [orders, setOrders] = useState<OrderDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -153,7 +159,7 @@ function AdminOrdersPage() {
         createdAt: o.createdAt,
         restaurantId: o.restaurantId || "evos",
         restaurantName:
-          restaurants.find((r) => r.id === o.restaurantId)?.name || "EVOS Fast Food",
+          allRestaurants.find((r) => r.id === o.restaurantId)?.name || "EVOS Fast Food",
         lines: o.lines,
         subtotal: o.subtotal,
         delivery: o.delivery,
@@ -497,7 +503,7 @@ function AdminOrdersPage() {
             </span>
           </button>
 
-          {restaurants.map((res) => {
+          {allRestaurants.map((res) => {
             const count = restaurantCounts[res.id] || 0;
             const isSelected = selectedRestaurant === res.id;
             return (
@@ -646,7 +652,7 @@ function AdminOrdersPage() {
                 const isUpdating = updatingId === order.id;
                 const isSelected = selectedOrderIds.includes(order.id);
                 const cfg = statusConfig[order.status] || statusConfig.new;
-                const restaurant = restaurants.find((r) => r.id === order.restaurantId);
+                const restaurant = allRestaurants.find((r) => r.id === order.restaurantId);
                 const restName = order.restaurantName || restaurant?.name || "Fast Food";
 
                 const mapLink = order.customer?.lat && order.customer?.lng
@@ -955,7 +961,7 @@ function AdminOrdersPage() {
                       const numId = (order.id || "").replace("ORD-", "");
                       const cfg = statusConfig[order.status] || statusConfig.new;
                       const isSelected = selectedOrderIds.includes(order.id);
-                      const rest = restaurants.find((r) => r.id === order.restaurantId);
+                      const rest = allRestaurants.find((r) => r.id === order.restaurantId);
 
                       return (
                         <tr

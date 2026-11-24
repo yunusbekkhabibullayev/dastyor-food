@@ -12,6 +12,9 @@ import { useT } from "@/lib/i18n";
 import { formatAddress, profileSettings, useProfileSettings } from "@/lib/profile-settings";
 import { customerReady } from "@/lib/form-validation";
 import { formatDelivery, formatSom, getRestaurant } from "@/lib/mock-data";
+import { getLiveRestaurant } from "@/lib/use-food-data";
+import { createFirestoreOrder } from "@/lib/firebase-data";
+import { isFirebaseConfigured, type OrderDoc } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
@@ -36,7 +39,7 @@ function CheckoutPage() {
   const settings = useProfileSettings();
   const ready = useHydrated() && !!s.ready;
   const t = cartTotals(s);
-  const r = t.restaurantId ? getRestaurant(t.restaurantId) : undefined;
+  const r = t.restaurantId ? (getLiveRestaurant(t.restaurantId) ?? getRestaurant(t.restaurantId)) : undefined;
   const navigate = useNavigate();
   const [notes, setNotes] = useState("");
   const [editingLocation, setEditingLocation] = useState(false);
@@ -115,7 +118,43 @@ function CheckoutPage() {
     setSubmitted(true);
     setSendError("");
     try {
-      await submitTelegramOrder(order);
+      // 1. Save to Firebase Firestore
+      if (isFirebaseConfigured) {
+        const orderDoc: OrderDoc = {
+          id: order.id,
+          createdAt: order.createdAt,
+          restaurantId: order.restaurantId,
+          lines: order.lines,
+          subtotal: order.subtotal,
+          delivery: order.delivery,
+          total: order.total,
+          status: "new",
+          customer: {
+            name: order.customer.name,
+            phone: order.customer.phone,
+            address: order.customer.address,
+            lat: order.customer.lat,
+            lng: order.customer.lng,
+            payment: order.customer.payment,
+            notes: order.customer.notes,
+          },
+        };
+        await createFirestoreOrder(orderDoc);
+      }
+
+      // 2. Also send to Telegram if configured
+      try {
+        await submitTelegramOrder(order);
+      } catch (tgErr) {
+        console.warn("Telegram submit note:", tgErr);
+        if (isFirebaseConfigured) {
+          cart.commitOrder(order);
+        } else {
+          throw tgErr;
+        }
+      }
+
+      cart.commitOrder(order);
       void navigate({ to: "/order-success" });
     } catch (error) {
       setSendError(

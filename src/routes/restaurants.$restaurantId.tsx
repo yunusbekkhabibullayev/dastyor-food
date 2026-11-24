@@ -19,11 +19,40 @@ import {
   matches,
   type Product,
 } from "@/lib/mock-data";
-import { useFoodData } from "@/lib/use-food-data";
+import { getLiveRestaurant, useFoodData } from "@/lib/use-food-data";
+import { getFirestoreRestaurants } from "@/lib/firebase-data";
+import { isFirebaseConfigured } from "@/lib/firebase";
 
 export const Route = createFileRoute("/restaurants/$restaurantId")({
-  loader: ({ params }) => {
-    const r = getRestaurant(params.restaurantId);
+  loader: async ({ params }) => {
+    let r = getLiveRestaurant(params.restaurantId) ?? getRestaurant(params.restaurantId);
+    if (!r && isFirebaseConfigured) {
+      const live = await getFirestoreRestaurants();
+      const match = live.find(
+        (x) =>
+          x.id === params.restaurantId ||
+          x.name.toLowerCase() === params.restaurantId.toLowerCase() ||
+          x.name.toLowerCase().replace(/\s+/g, "") === params.restaurantId.toLowerCase(),
+      );
+      if (match) {
+        r = {
+          id: match.id,
+          name: match.name,
+          short: match.short,
+          tone: match.tone,
+          cover: match.cover,
+          logo: match.logo,
+          rating: match.rating,
+          reviews: match.reviews,
+          time: match.time,
+          delivery: match.delivery,
+          minOrder: match.minOrder,
+          address: match.address,
+          category: match.category as any,
+          tags: match.tags || [],
+        };
+      }
+    }
     if (!r) throw notFound();
     return { r };
   },
@@ -57,8 +86,9 @@ export const Route = createFileRoute("/restaurants/$restaurantId")({
 });
 
 function RestaurantPage() {
-  const { r } = Route.useLoaderData();
-  const { products } = useFoodData();
+  const { r: initialR } = Route.useLoaderData();
+  const { products, restaurants } = useFoodData();
+  const r = restaurants.find((x) => x.id === initialR.id) ?? initialR;
   const menu = useMemo(() => {
     const liveItems = products.filter(
       (p) =>

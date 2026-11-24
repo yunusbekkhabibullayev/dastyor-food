@@ -6,7 +6,8 @@ import {
   upsertFirestoreRestaurant,
   deleteFirestoreRestaurant,
 } from "@/lib/firebase-data";
-import { isFirebaseConfigured, type RestaurantDoc } from "@/lib/firebase";
+import { isFirebaseConfigured, db, type RestaurantDoc } from "@/lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 import { restaurants as mockRestaurants, formatSom, formatDelivery } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -30,35 +31,58 @@ function AdminRestaurantsPage() {
   const [minOrder, setMinOrder] = useState("30000");
 
   useEffect(() => {
-    const load = async () => {
-      if (isFirebaseConfigured) {
-        const live = await getFirestoreRestaurants();
-        if (live.length > 0) {
-          setRestaurants(live);
-          return;
-        }
-      }
-      setRestaurants(
-        mockRestaurants.map((r) => ({
-          id: r.id,
-          name: r.name,
-          short: r.short,
-          tone: r.tone,
-          cover: r.cover,
-          logo: r.logo,
-          rating: r.rating,
-          reviews: r.reviews,
-          time: r.time,
-          delivery: r.delivery,
-          minOrder: r.minOrder,
-          address: r.address,
-          category: r.category,
-          tags: r.tags,
-          isActive: true,
-        })),
+    if (isFirebaseConfigured && db) {
+      const unsub = onSnapshot(
+        collection(db, "restaurants"),
+        (snap) => {
+          if (!snap.empty) {
+            setRestaurants(snap.docs.map((d) => d.data() as RestaurantDoc));
+          } else {
+            setRestaurants(
+              mockRestaurants.map((r) => ({
+                id: r.id,
+                name: r.name,
+                short: r.short,
+                tone: r.tone,
+                cover: r.cover,
+                logo: r.logo,
+                rating: r.rating,
+                reviews: r.reviews,
+                time: r.time,
+                delivery: r.delivery,
+                minOrder: r.minOrder,
+                address: r.address,
+                category: r.category,
+                tags: r.tags,
+                isActive: true,
+              })),
+            );
+          }
+        },
+        (err) => console.warn("Admin restaurants snapshot error:", err),
       );
-    };
-    void load();
+      return () => unsub();
+    }
+
+    setRestaurants(
+      mockRestaurants.map((r) => ({
+        id: r.id,
+        name: r.name,
+        short: r.short,
+        tone: r.tone,
+        cover: r.cover,
+        logo: r.logo,
+        rating: r.rating,
+        reviews: r.reviews,
+        time: r.time,
+        delivery: r.delivery,
+        minOrder: r.minOrder,
+        address: r.address,
+        category: r.category,
+        tags: r.tags,
+        isActive: true,
+      })),
+    );
   }, []);
 
   const handleDelete = async (id: string) => {

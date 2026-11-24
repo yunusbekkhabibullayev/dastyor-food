@@ -6,6 +6,7 @@ import { OrderTimeline, StatusBadge, useNow } from "@/components/app/orders";
 import { ChevronLeft } from "lucide-react";
 import { orderEtaMinutes, orderStageIndex, orderStages, useCart } from "@/lib/cart-store";
 import { formatDelivery, formatSom, getRestaurant } from "@/lib/mock-data";
+import { getLiveRestaurant } from "@/lib/use-food-data";
 
 export const Route = createFileRoute("/orders/$orderId")({
   head: ({ params }) => ({
@@ -28,7 +29,7 @@ function OrderPage() {
   const ready = useHydrated() && !!s.ready;
   const now = useNow(1000);
   const o = s.orders.find((x) => x.id === orderId);
-  const r = o ? getRestaurant(o.restaurantId) : undefined;
+  const r = o ? (getLiveRestaurant(o.restaurantId) ?? getRestaurant(o.restaurantId)) : undefined;
 
   const header = (
     <header className="pt-safe sticky top-0 z-30 grid grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 bg-background/95 px-5 pb-3 backdrop-blur">

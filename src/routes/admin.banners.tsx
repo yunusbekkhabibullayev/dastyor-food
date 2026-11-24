@@ -6,7 +6,8 @@ import {
   upsertFirestoreBanner,
   deleteFirestoreBanner,
 } from "@/lib/firebase-data";
-import { isFirebaseConfigured, type BannerDoc } from "@/lib/firebase";
+import { isFirebaseConfigured, db, type BannerDoc } from "@/lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 import { products } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -25,42 +26,72 @@ function AdminBannersPage() {
   const [text, setText] = useState("");
 
   useEffect(() => {
-    const load = async () => {
-      if (isFirebaseConfigured) {
-        const live = await getFirestoreBanners();
-        if (live.length > 0) {
-          setBanners(live);
-          return;
-        }
-      }
-      setBanners([
-        {
-          id: "banner-1",
-          badge: "-20% chegirma",
-          title: "Eng yaxshi fast-foodlar endi bir joyda!",
-          text: "Buyurtma bering va tezkor yetkazib berishni oling",
-          img: products[0]?.image || "",
-          isActive: true,
+    if (isFirebaseConfigured && db) {
+      const unsub = onSnapshot(
+        collection(db, "banners"),
+        (snap) => {
+          if (!snap.empty) {
+            setBanners(snap.docs.map((d) => d.data() as BannerDoc));
+          } else {
+            setBanners([
+              {
+                id: "banner-1",
+                badge: "-20% chegirma",
+                title: "Eng yaxshi fast-foodlar endi bir joyda!",
+                text: "Buyurtma bering va tezkor yetkazib berishni oling",
+                img: products[0]?.image || "",
+                isActive: true,
+              },
+              {
+                id: "banner-2",
+                badge: "Yangi",
+                title: "Issiq pitsalar 30 daqiqada",
+                text: "Sevimli pitsangizni uyga buyurtma qiling",
+                img: products[3]?.image || "",
+                isActive: true,
+              },
+              {
+                id: "banner-3",
+                badge: "Bepul yetkazish",
+                title: "Lavash va donarlar",
+                text: "Ko'pchilik xonalardan yetkazib berish — 0 UZS",
+                img: products[1]?.image || "",
+                isActive: true,
+              },
+            ]);
+          }
         },
-        {
-          id: "banner-2",
-          badge: "Yangi",
-          title: "Issiq pitsalar 30 daqiqada",
-          text: "Sevimli pitsangizni uyga buyurtma qiling",
-          img: products[3]?.image || "",
-          isActive: true,
-        },
-        {
-          id: "banner-3",
-          badge: "Bepul yetkazish",
-          title: "Lavash va donarlar",
-          text: "Ko'pchilik xonalardan yetkazib berish — 0 UZS",
-          img: products[1]?.image || "",
-          isActive: true,
-        },
-      ]);
-    };
-    void load();
+        (err) => console.warn("Admin banners snapshot error:", err),
+      );
+      return () => unsub();
+    }
+
+    setBanners([
+      {
+        id: "banner-1",
+        badge: "-20% chegirma",
+        title: "Eng yaxshi fast-foodlar endi bir joyda!",
+        text: "Buyurtma bering va tezkor yetkazib berishni oling",
+        img: products[0]?.image || "",
+        isActive: true,
+      },
+      {
+        id: "banner-2",
+        badge: "Yangi",
+        title: "Issiq pitsalar 30 daqiqada",
+        text: "Sevimli pitsangizni uyga buyurtma qiling",
+        img: products[3]?.image || "",
+        isActive: true,
+      },
+      {
+        id: "banner-3",
+        badge: "Bepul yetkazish",
+        title: "Lavash va donarlar",
+        text: "Ko'pchilik xonalardan yetkazib berish — 0 UZS",
+        img: products[1]?.image || "",
+        isActive: true,
+      },
+    ]);
   }, []);
 
   const handleAdd = async (e: React.FormEvent) => {

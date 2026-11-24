@@ -4,7 +4,8 @@ import { Heart } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { Chips, ProductCard, ProductSheet, RestaurantCard } from "@/components/app/food";
 import { useCart } from "@/lib/cart-store";
-import { products, restaurants, type Product } from "@/lib/mock-data";
+import { type Product } from "@/lib/mock-data";
+import { useFoodData } from "@/lib/use-food-data";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({
@@ -24,6 +25,7 @@ const tabs = ["Taomlar", "Xonalar"];
 
 function FavoritesPage() {
   const s = useCart();
+  const { products, restaurants } = useFoodData();
   const ready = useHydrated() && !!s.ready;
   const [tab, setTab] = useState("Taomlar");
   const [open, setOpen] = useState<Product | null>(null);
@@ -33,11 +35,11 @@ function FavoritesPage() {
 
   const favProducts = useMemo(
     () => products.filter((p) => s.liked.includes(p.id)),
-    [s.liked],
+    [products, s.liked],
   );
   const favRestaurants = useMemo(
     () => restaurants.filter((r) => s.likedRestaurants.includes(r.id)),
-    [s.likedRestaurants],
+    [restaurants, s.likedRestaurants],
   );
   const empty = tab === "Taomlar" ? favProducts.length === 0 : favRestaurants.length === 0;
 

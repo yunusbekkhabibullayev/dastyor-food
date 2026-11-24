@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { getRestaurant, products, type Product } from "./mock-data";
+import { getLiveProduct, getLiveRestaurant } from "./use-food-data";
 
 export type Order = {
   id: string;
@@ -52,7 +53,7 @@ const set = (s: State) => {
   subs.forEach((f) => f());
 };
 
-const byId = (id: string) => products.find((p) => p.id === id);
+const byId = (id: string) => getLiveProduct(id) ?? products.find((p) => p.id === id);
 
 /** Restaurant that the current cart belongs to (one restaurant per order). */
 export const cartRestaurantId = (s: State) => {
@@ -76,11 +77,12 @@ export const cart = {
       }
       const saved = JSON.parse(raw) as Partial<State>;
       const validItems = Object.entries(saved.items ?? {}).filter(
-        ([id, q]) => byId(id) && typeof q === "number" && Number.isSafeInteger(q) && q > 0,
+        ([id, q]) => byId(id) && typeof id === "string" && typeof q === "number" && Number.isSafeInteger(q) && q > 0,
       );
-      const firstRestaurant = validItems[0] ? byId(validItems[0][0])?.restaurantId : undefined;
+      const firstProduct = validItems[0] ? byId(validItems[0][0]) : undefined;
+      const firstRestaurant = firstProduct?.restaurantId;
       const items = Object.fromEntries(
-        validItems.filter(([id]) => byId(id)?.restaurantId === firstRestaurant),
+        validItems.filter(([id]) => !firstRestaurant || !byId(id) || byId(id)?.restaurantId === firstRestaurant),
       );
       const orders = Array.isArray(saved.orders)
         ? saved.orders
@@ -90,10 +92,10 @@ export const cart = {
       state = {
         items,
         liked: Array.isArray(saved.liked)
-          ? saved.liked.filter((id) => typeof id === "string" && byId(id))
+          ? saved.liked.filter((id) => typeof id === "string")
           : [],
         likedRestaurants: Array.isArray(saved.likedRestaurants)
-          ? saved.likedRestaurants.filter((id) => typeof id === "string" && getRestaurant(id))
+          ? saved.likedRestaurants.filter((id) => typeof id === "string")
           : [],
         orders,
         lastOrder: saved.lastOrder ?? orders[0] ?? null,
@@ -113,9 +115,9 @@ export const cart = {
   },
   add: (id: string, qty = 1, replace = false): AddResult => {
     const p = byId(id);
-    if (!p || !Number.isSafeInteger(qty) || qty < 1) return "ok";
+    if (!Number.isSafeInteger(qty) || qty < 1) return "ok";
     const current = cartRestaurantId(state);
-    if (current && current !== p.restaurantId) {
+    if (p && current && current !== p.restaurantId) {
       if (!replace) return "conflict";
       set({ ...state, items: { [id]: qty } });
       return "ok";
@@ -190,7 +192,8 @@ export function cartTotals(s: State) {
   });
   const restaurantId = cartRestaurantId(s);
   const subtotal = lines.reduce((t, l) => t + l.lineTotal, 0);
-  const delivery = restaurantId && lines.length ? (getRestaurant(restaurantId)?.delivery ?? 0) : 0;
+  const restaurant = restaurantId ? (getLiveRestaurant(restaurantId) ?? getRestaurant(restaurantId)) : undefined;
+  const delivery = restaurantId && lines.length ? (restaurant?.delivery ?? 0) : 0;
   return {
     lines,
     restaurantId,

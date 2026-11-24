@@ -7,6 +7,7 @@ import { Stepper } from "@/components/app/food";
 import { PageHeader } from "@/components/app/PageHeader";
 import { cart, cartTotals, useCart } from "@/lib/cart-store";
 import { formatDelivery, formatSom, getRestaurant, type Product } from "@/lib/mock-data";
+import { getLiveRestaurant } from "@/lib/use-food-data";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -26,7 +27,7 @@ function CartPage() {
   const s = useCart();
   const ready = useHydrated() && !!s.ready;
   const t = cartTotals(s);
-  const r = t.restaurantId ? getRestaurant(t.restaurantId) : undefined;
+  const r = t.restaurantId ? (getLiveRestaurant(t.restaurantId) ?? getRestaurant(t.restaurantId)) : undefined;
   const [removing, setRemoving] = useState<Product | null>(null);
 
   if (!ready)

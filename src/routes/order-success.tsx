@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { DemoNotice } from "@/components/app/PageHeader";
 import { useCart } from "@/lib/cart-store";
 import { formatSom, getRestaurant } from "@/lib/mock-data";
+import { getLiveRestaurant } from "@/lib/use-food-data";
 
 export const Route = createFileRoute("/order-success")({
   head: () => ({
@@ -23,7 +24,7 @@ function SuccessPage() {
   const s = useCart();
   const ready = useHydrated() && !!s.ready;
   const o = s.lastOrder;
-  const r = o ? getRestaurant(o.restaurantId) : undefined;
+  const r = o ? (getLiveRestaurant(o.restaurantId) ?? getRestaurant(o.restaurantId)) : undefined;
 
   return (
     <div className="app-screen pt-safe pb-safe mx-auto flex max-w-md flex-col px-5">

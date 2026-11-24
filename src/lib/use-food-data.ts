@@ -12,14 +12,24 @@ import {
   type ProductDoc,
   type CategoryDoc,
   type RestaurantDoc,
+  type BannerDoc,
 } from "./firebase";
-import { collection, onSnapshot, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
+
+export interface AppBanner {
+  id: string;
+  badge: string;
+  title: string;
+  text: string;
+  img: string;
+  link?: string;
+}
 
 // Shared in-memory cache to prevent flashing across page navigations
 let cachedProducts: Product[] = defaultProducts;
 let cachedCategories: string[] = defaultCategories;
 let cachedRestaurants: Restaurant[] = defaultRestaurants;
-let isInitialized = false;
+let cachedBanners: AppBanner[] = [];
 
 const listeners = new Set<() => void>();
 
@@ -97,26 +107,76 @@ if (typeof window !== "undefined" && isFirebaseConfigured && db) {
       (err) => console.warn("Products snapshot warning:", err),
     );
 
-    isInitialized = true;
+    // 4. Banners real-time listener
+    onSnapshot(
+      collection(db, "banners"),
+      (snap) => {
+        if (!snap.empty) {
+          const liveBanners = snap.docs.map((d) => d.data() as BannerDoc);
+          cachedBanners = liveBanners
+            .filter((b) => b.isActive !== false)
+            .map((b) => ({
+              id: b.id,
+              badge: b.badge,
+              title: b.title,
+              text: b.text,
+              img: b.img,
+              link: b.link,
+            }));
+          notify();
+        }
+      },
+      (err) => console.warn("Banners snapshot warning:", err),
+    );
   } catch (err) {
     console.warn("Failed to attach Firestore listeners:", err);
   }
+}
+
+export function getLiveProduct(id: string): Product | undefined {
+  return cachedProducts.find((p) => p.id === id);
+}
+
+export function getLiveRestaurant(idOrSlug: string): Restaurant | undefined {
+  if (!idOrSlug) return undefined;
+  const lower = idOrSlug.toLowerCase().trim();
+  return cachedRestaurants.find(
+    (r) =>
+      r.id.toLowerCase() === lower ||
+      r.name.toLowerCase() === lower ||
+      r.name.toLowerCase().replace(/\s+/g, "") === lower,
+  );
+}
+
+export function getLiveMenu(restaurantIdOrName: string): Product[] {
+  if (!restaurantIdOrName) return [];
+  const lower = restaurantIdOrName.toLowerCase().trim();
+  const rest = getLiveRestaurant(lower);
+  return cachedProducts.filter(
+    (p) =>
+      p.restaurantId?.toLowerCase() === lower ||
+      (rest && p.restaurantId?.toLowerCase() === rest.id.toLowerCase()) ||
+      p.restaurant?.toLowerCase() === lower ||
+      (rest && p.restaurant?.toLowerCase() === rest.name.toLowerCase()) ||
+      p.restaurantId?.toLowerCase() === lower.replace(/\s+/g, ""),
+  );
 }
 
 export function useFoodData() {
   const [products, setProducts] = useState<Product[]>(cachedProducts);
   const [categories, setCategories] = useState<string[]>(cachedCategories);
   const [restaurants, setRestaurants] = useState<Restaurant[]>(cachedRestaurants);
+  const [banners, setBanners] = useState<AppBanner[]>(cachedBanners);
 
   useEffect(() => {
     const handleUpdate = () => {
       setProducts(cachedProducts);
       setCategories(cachedCategories);
       setRestaurants(cachedRestaurants);
+      setBanners(cachedBanners);
     };
 
     listeners.add(handleUpdate);
-    // Sync immediate cache
     handleUpdate();
 
     return () => {
@@ -128,6 +188,9 @@ export function useFoodData() {
     products,
     categories,
     restaurants,
+    banners,
+    getProduct: getLiveProduct,
+    getRestaurant: getLiveRestaurant,
+    getMenu: getLiveMenu,
   };
 }
-

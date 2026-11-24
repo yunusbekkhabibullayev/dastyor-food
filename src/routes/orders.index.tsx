@@ -6,6 +6,7 @@ import { StatusBadge, useNow } from "@/components/app/orders";
 import { PageHeader } from "@/components/app/PageHeader";
 import { orderStageIndex, orderStages, useCart, type Order } from "@/lib/cart-store";
 import { formatSom, getRestaurant } from "@/lib/mock-data";
+import { getLiveRestaurant } from "@/lib/use-food-data";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -65,7 +66,7 @@ function Group({ title, orders, now }: { title: string; orders: Order[]; now: nu
       <h2 className="mb-3 font-display text-lg font-bold">{title}</h2>
       <ul className="space-y-3">
         {orders.map((o) => {
-          const r = getRestaurant(o.restaurantId);
+          const r = getLiveRestaurant(o.restaurantId) ?? getRestaurant(o.restaurantId);
           return (
             <li key={o.id}>
               <Link
