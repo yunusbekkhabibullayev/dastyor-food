@@ -168,22 +168,28 @@ function CheckoutPage() {
   return (
     <AppShell>
       <PageHeader title="Buyurtma berish" back="/cart" />
-      <form onSubmit={submit} noValidate className="space-y-6 px-5 pb-10">
+      <form onSubmit={submit} noValidate className="space-y-6 px-5 pt-5 pb-16">
         <Section title="Mijoz ma'lumotlari">
-          <div className="space-y-2 rounded-3xl border border-border bg-card p-4 shadow-card">
-            <p className="flex items-center gap-3 text-sm font-semibold">
-              <User className="h-4 w-4 shrink-0 text-primary" />{" "}
+          <div className="space-y-3 rounded-3xl border border-border/80 bg-card p-4 shadow-xs">
+            <div className="flex items-center gap-3 text-sm font-semibold">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <User className="h-3.5 w-3.5" />
+              </div>
               <span className="truncate" data-testid="checkout-name">
                 {s.profile.name}
               </span>
-            </p>
-            <p className="flex items-center gap-3 text-sm font-semibold">
-              <Phone className="h-4 w-4 shrink-0 text-primary" />{" "}
+            </div>
+            <div className="flex items-center gap-3 text-sm font-semibold">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Phone className="h-3.5 w-3.5" />
+              </div>
               <span className="truncate">{s.profile.phone}</span>
-            </p>
-            <Link to="/profile" className="inline-block pt-1 text-xs font-bold text-primary">
-              Profil orqali o'zgartirish
-            </Link>
+            </div>
+            <div className="border-t border-border/60 pt-2.5">
+              <Link to="/profile" className="inline-flex items-center text-xs font-bold text-primary hover:underline">
+                Profil orqali o'zgartirish
+              </Link>
+            </div>
           </div>
         </Section>
 
@@ -199,23 +205,29 @@ function CheckoutPage() {
             />
           ) : (
             <>
-              <div className="flex items-start gap-3 rounded-3xl border border-border bg-card p-4 shadow-card">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <p
-                  className="min-w-0 flex-1 break-words text-sm font-semibold"
-                  data-testid="checkout-address"
-                >
-                  {loc?.address}
-                </p>
-                <Button
-                  variant="unstyled"
-                  size="unset"
-                  type="button"
-                  onClick={() => setEditingLocation(true)}
-                  className="shrink-0 text-xs font-bold text-primary"
-                >
-                  Xaritadan o'zgartirish
-                </Button>
+              <div className="rounded-3xl border border-border/80 bg-card p-4 shadow-xs space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5">
+                    <MapPin className="h-3.5 w-3.5" />
+                  </div>
+                  <p
+                    className="min-w-0 flex-1 break-words text-sm font-semibold leading-snug"
+                    data-testid="checkout-address"
+                  >
+                    {loc?.address}
+                  </p>
+                </div>
+                <div className="border-t border-border/60 pt-2.5 flex justify-end">
+                  <Button
+                    variant="unstyled"
+                    size="unset"
+                    type="button"
+                    onClick={() => setEditingLocation(true)}
+                    className="text-xs font-bold text-primary hover:underline"
+                  >
+                    Xaritadan o'zgartirish
+                  </Button>
+                </div>
               </div>
               {settings.addresses.length > 0 && (
                 <div className="flex flex-wrap gap-2">
