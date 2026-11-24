@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useHydrated, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ShoppingBag, Trash2 } from "lucide-react";

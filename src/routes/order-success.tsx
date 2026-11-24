@@ -1,4 +1,4 @@
-﻿import { createFileRoute, useHydrated, Link } from "@tanstack/react-router";
+import { createFileRoute, useHydrated, Link } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { DemoNotice } from "@/components/app/PageHeader";
 import { useCart } from "@/lib/cart-store";

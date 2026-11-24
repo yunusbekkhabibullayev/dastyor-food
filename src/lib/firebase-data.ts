@@ -335,9 +335,25 @@ export async function updateFirestoreOrderStatus(
   });
 }
 
+function cleanUndefined<T>(obj: T): T {
+  if (obj === null || obj === undefined) return null as unknown as T;
+  if (Array.isArray(obj)) return obj.map(cleanUndefined) as unknown as T;
+  if (typeof obj === "object" && !(obj instanceof Date)) {
+    const res: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (v !== undefined) {
+        res[k] = cleanUndefined(v);
+      }
+    }
+    return res as T;
+  }
+  return obj;
+}
+
 export async function createFirestoreOrder(order: OrderDoc): Promise<void> {
   if (!db || !isFirebaseConfigured) return;
-  await setDoc(doc(db, "orders", order.id), order);
+  const sanitized = cleanUndefined(order);
+  await setDoc(doc(db, "orders", order.id), sanitized);
 }
 
 export async function deleteFirestoreOrder(orderId: string): Promise<void> {

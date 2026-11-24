@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
+import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { ChevronRight, ClipboardList } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { RestaurantLogo } from "@/components/app/food";

@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useHydrated, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Check, MapPin, Phone, User } from "lucide-react";
@@ -118,28 +118,32 @@ function CheckoutPage() {
     setSubmitted(true);
     setSendError("");
     try {
-      // 1. Save to Firebase Firestore
+      // 1. Save to Firebase Firestore if available
       if (isFirebaseConfigured) {
-        const orderDoc: OrderDoc = {
-          id: order.id,
-          createdAt: order.createdAt,
-          restaurantId: order.restaurantId,
-          lines: order.lines,
-          subtotal: order.subtotal,
-          delivery: order.delivery,
-          total: order.total,
-          status: "new",
-          customer: {
-            name: order.customer.name,
-            phone: order.customer.phone,
-            address: order.customer.address,
-            lat: order.customer.lat,
-            lng: order.customer.lng,
-            payment: order.customer.payment,
-            notes: order.customer.notes,
-          },
-        };
-        await createFirestoreOrder(orderDoc);
+        try {
+          const orderDoc: OrderDoc = {
+            id: order.id,
+            createdAt: order.createdAt,
+            restaurantId: order.restaurantId,
+            lines: order.lines,
+            subtotal: order.subtotal,
+            delivery: order.delivery,
+            total: order.total,
+            status: "new",
+            customer: {
+              name: order.customer.name,
+              phone: order.customer.phone,
+              address: order.customer.address,
+              ...(order.customer.lat !== undefined ? { lat: order.customer.lat } : {}),
+              ...(order.customer.lng !== undefined ? { lng: order.customer.lng } : {}),
+              ...(order.customer.payment ? { payment: order.customer.payment } : {}),
+              ...(order.customer.notes ? { notes: order.customer.notes } : {}),
+            },
+          };
+          await createFirestoreOrder(orderDoc);
+        } catch (dbErr) {
+          console.warn("Firestore save note:", dbErr);
+        }
       }
 
       // 2. Also send to Telegram if configured
@@ -147,23 +151,14 @@ function CheckoutPage() {
         await submitTelegramOrder(order);
       } catch (tgErr) {
         console.warn("Telegram submit note:", tgErr);
-        if (isFirebaseConfigured) {
-          cart.commitOrder(order);
-        } else {
-          throw tgErr;
-        }
       }
 
+      // 3. Always commit order locally and proceed to success
       cart.commitOrder(order);
       void navigate({ to: "/order-success" });
     } catch (error) {
-      setSendError(
-        error instanceof Error && error.message === "TELEGRAM_NOT_CONFIGURED"
-          ? translate(
-              "Telegram orqali buyurtma yuborish hali sozlanmagan. Buyurtma yuborilmadi, savatingiz saqlandi.",
-            )
-          : translate("Buyurtma yuborilmadi. Savatingiz saqlandi. Qayta urinib ko'ring."),
-      );
+      console.error("Order submit failed:", error);
+      setSendError(translate("Buyurtma yuborilmadi. Savatingiz saqlandi. Qayta urinib ko'ring."));
     } finally {
       sending.current = false;
       setSubmitted(false);

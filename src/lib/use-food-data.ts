@@ -25,6 +25,14 @@ export interface AppBanner {
   link?: string;
 }
 
+const resolveLogo = (logo?: string, id?: string) => {
+  if (!logo) return defaultRestaurants.find((d) => d.id === id)?.logo;
+  if (logo.startsWith("src/") || logo.startsWith("/src/") || logo.startsWith("/@fs/")) {
+    return defaultRestaurants.find((d) => d.id === id)?.logo;
+  }
+  return logo;
+};
+
 // Shared in-memory cache to prevent flashing across page navigations
 let cachedProducts: Product[] = defaultProducts;
 let cachedCategories: string[] = defaultCategories;
@@ -68,7 +76,7 @@ if (typeof window !== "undefined" && isFirebaseConfigured && db) {
             short: r.short,
             tone: r.tone,
             cover: r.cover,
-            logo: r.logo,
+            logo: resolveLogo(r.logo, r.id),
             rating: r.rating,
             reviews: r.reviews,
             time: r.time,

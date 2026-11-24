@@ -48,8 +48,15 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
-  // Skip Telegram bot API & non-http(s) requests
-  if (url.origin.includes("api.telegram.org") || !url.protocol.startsWith("http")) {
+  // Skip external APIs, Firebase, Telegram bot API & non-http(s) requests
+  if (
+    url.origin.includes("api.telegram.org") ||
+    url.origin.includes("googleapis.com") ||
+    url.origin.includes("firebase") ||
+    url.pathname.startsWith("/src/") ||
+    url.pathname.includes("src/assets/") ||
+    !url.protocol.startsWith("http")
+  ) {
     return;
   }
 
@@ -106,13 +113,17 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return networkResponse;
-      });
+      return fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return new Response("", { status: 404, statusText: "Not Found" });
+        });
     })
   );
 });

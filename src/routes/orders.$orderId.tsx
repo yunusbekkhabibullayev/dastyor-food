@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
+import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { Clock, MapPin, Wallet } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { DemoNotice } from "@/components/app/PageHeader";
