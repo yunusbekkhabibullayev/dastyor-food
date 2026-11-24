@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useHydrated, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ShoppingBag, Trash2 } from "lucide-react";
+import { ShoppingBag, Trash2, ChevronLeft } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { Stepper } from "@/components/app/food";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -75,15 +75,18 @@ function CartPage() {
           </Button>
         }
       />
-      <main className="space-y-4 px-5 pb-48">
+      <main className="space-y-4 px-5 pt-3.5 pb-64">
         {r && (
-          <Link
-            to="/restaurants/$restaurantId"
-            params={{ restaurantId: r.id }}
-            className="block text-sm font-semibold text-primary"
-          >
-            {r.name} · menyuga qaytish
-          </Link>
+          <div className="pt-1">
+            <Link
+              to="/restaurants/$restaurantId"
+              params={{ restaurantId: r.id }}
+              className="group inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary transition-all hover:bg-primary/15 active:scale-98"
+            >
+              <ChevronLeft className="h-3.5 w-3.5 stroke-[2.5] transition-transform group-hover:-translate-x-0.5" />
+              <span>{r.name} · menyuga qaytish</span>
+            </Link>
+          </div>
         )}
         <ul className="space-y-3">
           {t.lines.map(({ product: p, qty, lineTotal }) => (
@@ -127,7 +130,7 @@ function CartPage() {
           ))}
         </ul>
       </main>
-      <div className="app-cart-summary fixed inset-x-0 z-40 mx-auto max-w-md border-t border-border bg-background px-5 pb-4 pt-3">
+      <div className="app-cart-summary fixed inset-x-0 z-40 mx-auto max-w-md border-t border-border bg-background/95 backdrop-blur-md px-5 pb-8 pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         <Row label="Taomlar" value={formatSom(t.subtotal)} />
         <Row label="Yetkazib berish" value={formatDelivery(t.delivery)} />
         <div className="mt-1 flex justify-between font-display text-lg font-extrabold">
@@ -136,7 +139,7 @@ function CartPage() {
         </div>
         <Link
           to="/checkout"
-          className="mt-3 flex h-14 items-center justify-center rounded-2xl bg-primary font-bold text-primary-foreground shadow-cta"
+          className="mt-3 flex h-14 items-center justify-center rounded-2xl bg-primary font-bold text-primary-foreground shadow-cta active:scale-[0.99] transition-transform"
         >
           Buyurtmani davom ettirish
         </Link>
