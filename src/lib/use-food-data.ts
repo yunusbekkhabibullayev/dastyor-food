@@ -33,11 +33,37 @@ const resolveLogo = (logo?: string, id?: string) => {
   return logo;
 };
 
-// Shared in-memory cache to prevent flashing across page navigations
-let cachedProducts: Product[] = defaultProducts;
-let cachedCategories: string[] = defaultCategories;
-let cachedRestaurants: Restaurant[] = defaultRestaurants;
-let cachedBanners: AppBanner[] = [];
+const CACHE_KEY_PRODUCTS = "dastyor_cache_products_v3";
+const CACHE_KEY_CATEGORIES = "dastyor_cache_categories_v3";
+const CACHE_KEY_RESTAURANTS = "dastyor_cache_restaurants_v3";
+const CACHE_KEY_BANNERS = "dastyor_cache_banners_v3";
+
+function readLocalCache<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed as T;
+    }
+  } catch {}
+  return fallback;
+}
+
+// When Firebase is configured, initialize strictly with real cached data (or empty), NEVER with old mock data!
+let cachedProducts: Product[] = isFirebaseConfigured
+  ? readLocalCache<Product[]>(CACHE_KEY_PRODUCTS, [])
+  : defaultProducts;
+let cachedCategories: string[] = isFirebaseConfigured
+  ? readLocalCache<string[]>(CACHE_KEY_CATEGORIES, ["Barchasi"])
+  : defaultCategories;
+let cachedRestaurants: Restaurant[] = isFirebaseConfigured
+  ? readLocalCache<Restaurant[]>(CACHE_KEY_RESTAURANTS, [])
+  : defaultRestaurants;
+let cachedBanners: AppBanner[] = isFirebaseConfigured
+  ? readLocalCache<AppBanner[]>(CACHE_KEY_BANNERS, [])
+  : [];
+let isLoaded = cachedProducts.length > 0;
 
 const listeners = new Set<() => void>();
 
@@ -57,6 +83,9 @@ if (typeof window !== "undefined" && isFirebaseConfigured && db) {
             .filter((c) => c.isActive !== false)
             .sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0));
           cachedCategories = ["Barchasi", ...sorted.map((c) => c.name)];
+          try {
+            localStorage.setItem(CACHE_KEY_CATEGORIES, JSON.stringify(cachedCategories));
+          } catch {}
           notify();
         }
       },
@@ -86,6 +115,9 @@ if (typeof window !== "undefined" && isFirebaseConfigured && db) {
             category: r.category as any,
             tags: r.tags || [],
           }));
+          try {
+            localStorage.setItem(CACHE_KEY_RESTAURANTS, JSON.stringify(cachedRestaurants));
+          } catch {}
           notify();
         }
       },
@@ -109,6 +141,10 @@ if (typeof window !== "undefined" && isFirebaseConfigured && db) {
             restaurantId: p.restaurantId,
             restaurant: p.restaurant,
           }));
+          isLoaded = true;
+          try {
+            localStorage.setItem(CACHE_KEY_PRODUCTS, JSON.stringify(cachedProducts));
+          } catch {}
           notify();
         }
       },
@@ -131,6 +167,9 @@ if (typeof window !== "undefined" && isFirebaseConfigured && db) {
               img: b.img,
               link: b.link,
             }));
+          try {
+            localStorage.setItem(CACHE_KEY_BANNERS, JSON.stringify(cachedBanners));
+          } catch {}
           notify();
         }
       },
@@ -175,6 +214,7 @@ export function useFoodData() {
   const [categories, setCategories] = useState<string[]>(cachedCategories);
   const [restaurants, setRestaurants] = useState<Restaurant[]>(cachedRestaurants);
   const [banners, setBanners] = useState<AppBanner[]>(cachedBanners);
+  const [loaded, setLoaded] = useState(isLoaded);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -182,6 +222,7 @@ export function useFoodData() {
       setCategories(cachedCategories);
       setRestaurants(cachedRestaurants);
       setBanners(cachedBanners);
+      setLoaded(isLoaded);
     };
 
     listeners.add(handleUpdate);
@@ -197,6 +238,7 @@ export function useFoodData() {
     categories,
     restaurants,
     banners,
+    isLoaded: loaded,
     getProduct: getLiveProduct,
     getRestaurant: getLiveRestaurant,
     getMenu: getLiveMenu,

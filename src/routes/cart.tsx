@@ -75,7 +75,7 @@ function CartPage() {
           </Button>
         }
       />
-      <main className="space-y-4 px-5 pt-3.5 pb-64">
+      <main className="space-y-4 px-5 pt-3.5 pb-80">
         {r && (
           <div className="pt-1">
             <Link
@@ -130,7 +130,7 @@ function CartPage() {
           ))}
         </ul>
       </main>
-      <div className="app-cart-summary fixed inset-x-0 z-40 mx-auto max-w-md border-t border-border bg-background/95 backdrop-blur-md px-5 pb-8 pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+      <div className="app-cart-summary fixed inset-x-0 z-40 mx-auto max-w-md border-t border-border/80 bg-background px-5 pb-10 pt-3 shadow-none">
         <Row label="Taomlar" value={formatSom(t.subtotal)} />
         <Row label="Yetkazib berish" value={formatDelivery(t.delivery)} />
         <div className="mt-1 flex justify-between font-display text-lg font-extrabold">
@@ -139,7 +139,7 @@ function CartPage() {
         </div>
         <Link
           to="/checkout"
-          className="mt-3 flex h-14 items-center justify-center rounded-2xl bg-primary font-bold text-primary-foreground shadow-cta active:scale-[0.99] transition-transform"
+          className="mt-3 flex h-14 items-center justify-center rounded-2xl bg-primary font-bold text-primary-foreground shadow-none hover:bg-primary/95 active:scale-[0.99] transition-transform"
         >
           Buyurtmani davom ettirish
         </Link>

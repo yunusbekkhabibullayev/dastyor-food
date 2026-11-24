@@ -96,7 +96,7 @@ function RestaurantPage() {
         p.restaurant?.toLowerCase() === r.name?.toLowerCase() ||
         p.restaurantId?.toLowerCase() === r.name?.toLowerCase().replace(/\s+/g, ""),
     );
-    return liveItems.length > 0 ? liveItems : getMenu(r.id);
+    return isFirebaseConfigured ? liveItems : (liveItems.length > 0 ? liveItems : getMenu(r.id));
   }, [products, r.id, r.name]);
 
   const restaurantCategories = useMemo(() => {
