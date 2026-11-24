@@ -96,8 +96,36 @@ export interface BannerDoc {
   orderIndex?: number;
 }
 
+export interface UserDoc {
+  id: string;
+  phone: string;
+  name: string;
+  addresses?: Array<{
+    id: string;
+    label: string;
+    district?: string;
+    street?: string;
+    house?: string;
+    apartment?: string;
+    lat?: number;
+    lng?: number;
+  }>;
+  defaultAddressId?: string | null;
+  location?: {
+    lat?: number;
+    lng?: number;
+    address: string;
+  } | null;
+  favorites?: string[];
+  totalOrders?: number;
+  totalSpent?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface OrderDoc {
   id: string;
+  userId?: string;
   createdAt: string;
   restaurantId: string;
   restaurantName?: string;

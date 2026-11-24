@@ -13,8 +13,25 @@ export function useNow(intervalMs = 1000) {
   return now;
 }
 
-export function StatusBadge({ stage }: { stage: number }) {
-  const done = stage >= orderStages.length - 1;
+export function StatusBadge({ stage, status }: { stage: number; status?: string }) {
+  if (status === "cancelled") {
+    return (
+      <span className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold bg-destructive/10 text-destructive">
+        Bekor qilindi
+      </span>
+    );
+  }
+  const done = status === "delivered" || stage >= orderStages.length - 1;
+  const label =
+    status === "new"
+      ? "Buyurtma qabul qilindi"
+      : status === "preparing"
+        ? "Tayyorlanmoqda"
+        : status === "delivering"
+          ? "Yo'lda"
+          : status === "delivered"
+            ? "Yetkazildi"
+            : orderStages[stage] ?? "Qabul qilindi";
   return (
     <span
       className={cn(
@@ -22,7 +39,7 @@ export function StatusBadge({ stage }: { stage: number }) {
         done ? "bg-success-soft text-success" : "bg-primary-soft text-primary",
       )}
     >
-      {orderStages[stage]}
+      {label}
     </span>
   );
 }

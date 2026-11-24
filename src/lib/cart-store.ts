@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { getRestaurant, products, type Product } from "./mock-data";
 import { getLiveProduct, getLiveRestaurant } from "./use-food-data";
+import { getFirestoreUser, normalizePhone, saveFirestoreUser } from "./firebase-data";
 
 export type Order = {
   id: string;
@@ -10,6 +11,7 @@ export type Order = {
   subtotal: number;
   delivery: number;
   total: number;
+  status?: "new" | "preparing" | "delivering" | "delivered" | "cancelled";
   customer: {
     name: string;
     phone: string;
@@ -107,6 +109,16 @@ export const cart = {
             : EMPTY.profile,
         ready: true,
       };
+      if (typeof window !== "undefined" && state.profile?.phone) {
+        const p = normalizePhone(state.profile.phone);
+        if (p.length >= 9) {
+          void getFirestoreUser(p).then((u) => {
+            if (u && u.name && u.name !== state.profile.name && u.name !== "Mehmon") {
+              set({ ...state, profile: { name: u.name, phone: state.profile.phone } });
+            }
+          });
+        }
+      }
       subs.forEach((f) => f());
     } catch {
       state = { ...EMPTY, ready: true };
@@ -149,7 +161,13 @@ export const cart = {
         ? state.likedRestaurants.filter((x) => x !== id)
         : [...state.likedRestaurants, id],
     }),
-  setProfile: (profile: Profile) => set({ ...state, profile }),
+  setProfile: (profile: Profile) => {
+    set({ ...state, profile });
+    const p = normalizePhone(profile.phone);
+    if (p.length >= 9) {
+      void saveFirestoreUser({ phone: p, name: profile.name });
+    }
+  },
   createOrder: (customer: Order["customer"]): Order | null => {
     const t = cartTotals(state);
     if (!t.restaurantId || t.lines.length === 0) return null;
@@ -262,7 +280,20 @@ export const orderStages = [
   "Yetkazildi",
 ] as const;
 export const STAGE_MS = 30_000;
-export function orderStageIndex(order: Pick<Order, "createdAt">, now: number) {
+
+export function orderStatusToStage(status?: string): number | null {
+  if (status === "new") return 0;
+  if (status === "preparing") return 1;
+  if (status === "delivering") return 2;
+  if (status === "delivered") return 3;
+  return null;
+}
+
+export function orderStageIndex(order: Pick<Order, "createdAt"> & { status?: string }, now: number) {
+  if (order.status) {
+    const stage = orderStatusToStage(order.status);
+    if (stage !== null) return stage;
+  }
   const elapsed = Math.max(0, now - new Date(order.createdAt).getTime());
   return Math.min(orderStages.length - 1, Math.floor(elapsed / STAGE_MS));
 }

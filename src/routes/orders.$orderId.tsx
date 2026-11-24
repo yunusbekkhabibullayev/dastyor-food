@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
-import { Clock, MapPin, Wallet } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Clock, MapPin, Wallet, AlertCircle } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { DemoNotice } from "@/components/app/PageHeader";
 import { OrderTimeline, StatusBadge, useNow } from "@/components/app/orders";
@@ -7,6 +8,8 @@ import { ChevronLeft } from "lucide-react";
 import { orderEtaMinutes, orderStageIndex, orderStages, useCart } from "@/lib/cart-store";
 import { formatDelivery, formatSom, getRestaurant } from "@/lib/mock-data";
 import { getLiveRestaurant } from "@/lib/use-food-data";
+import { subscribeToOrder } from "@/lib/firebase-data";
+import { type OrderDoc } from "@/lib/firebase";
 
 export const Route = createFileRoute("/orders/$orderId")({
   head: ({ params }) => ({
@@ -28,7 +31,18 @@ function OrderPage() {
   const s = useCart();
   const ready = useHydrated() && !!s.ready;
   const now = useNow(1000);
-  const o = s.orders.find((x) => x.id === orderId);
+  const [liveDoc, setLiveDoc] = useState<OrderDoc | null>(null);
+
+  useEffect(() => {
+    if (!orderId) return;
+    const unsub = subscribeToOrder(orderId, (doc) => {
+      if (doc) setLiveDoc(doc);
+    });
+    return unsub;
+  }, [orderId]);
+
+  const localOrder = s.orders.find((x) => x.id === orderId);
+  const o = liveDoc ?? localOrder;
   const r = o ? (getLiveRestaurant(o.restaurantId) ?? getRestaurant(o.restaurantId)) : undefined;
 
   const header = (
@@ -59,30 +73,54 @@ function OrderPage() {
       </AppShell>
     );
 
+  const isCancelled = o.status === "cancelled";
   const stage = now ? orderStageIndex(o, now) : 0;
-  const delivered = stage === orderStages.length - 1;
+  const delivered = o.status === "delivered" || stage === orderStages.length - 1;
   const eta = now ? orderEtaMinutes(o, now) : 0;
 
   return (
     <AppShell>
       {header}
       <main className="space-y-5 px-5 pb-6">
-        <section className="rounded-3xl bg-ink p-5 text-ink-foreground">
+        <section
+          className={
+            isCancelled
+              ? "rounded-3xl bg-destructive/10 border border-destructive/20 p-5 text-destructive"
+              : "rounded-3xl bg-ink p-5 text-ink-foreground"
+          }
+        >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-ink-foreground/70">{o.id}</p>
-            <StatusBadge stage={stage} />
+            <p className={isCancelled ? "text-xs text-destructive/70" : "text-xs text-ink-foreground/70"}>
+              {o.id}
+            </p>
+            <StatusBadge stage={stage} status={o.status} />
           </div>
-          <p className="mt-3 flex items-center gap-2 text-xs text-ink-foreground/70">
-            <Clock className="h-4 w-4" /> Taxminiy yetkazish vaqti
+          <p
+            className={
+              isCancelled
+                ? "mt-3 flex items-center gap-2 text-xs text-destructive/70"
+                : "mt-3 flex items-center gap-2 text-xs text-ink-foreground/70"
+            }
+          >
+            {isCancelled ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}{" "}
+            {isCancelled ? "Buyurtma holati" : "Taxminiy yetkazish vaqti"}
           </p>
           <p className="font-display text-3xl font-extrabold" data-testid="eta">
-            {delivered ? "Yetkazildi" : eta <= 1 ? "1 daqiqadan kam" : `${eta} daqiqa`}
+            {isCancelled
+              ? "Bekor qilindi"
+              : delivered
+                ? "Yetkazildi"
+                : eta <= 1
+                  ? "1 daqiqadan kam"
+                  : `${eta} daqiqa`}
           </p>
         </section>
 
-        <section className="rounded-3xl border border-border bg-card p-5 shadow-card">
-          <OrderTimeline stage={stage} />
-        </section>
+        {!isCancelled && (
+          <section className="rounded-3xl border border-border bg-card p-5 shadow-card">
+            <OrderTimeline stage={stage} />
+          </section>
+        )}
 
         <section className="space-y-3 rounded-3xl border border-border bg-card p-5 shadow-card">
           <h2 className="font-display text-base font-bold">

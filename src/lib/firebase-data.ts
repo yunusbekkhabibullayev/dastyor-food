@@ -7,8 +7,10 @@ import {
   deleteDoc,
   updateDoc,
   query,
+  where,
   orderBy,
   onSnapshot,
+  increment,
   Timestamp,
 } from "firebase/firestore";
 import {
@@ -19,6 +21,7 @@ import {
   type CategoryDoc,
   type BannerDoc,
   type OrderDoc,
+  type UserDoc,
 } from "./firebase";
 import {
   restaurants as mockRestaurants,
@@ -364,6 +367,134 @@ export async function deleteFirestoreOrder(orderId: string): Promise<void> {
 export async function bulkDeleteFirestoreOrders(orderIds: string[]): Promise<void> {
   if (!db || !isFirebaseConfigured) return;
   await Promise.all(orderIds.map((id) => deleteDoc(doc(db, "orders", id))));
+}
+
+// ==================== MIJOZLAR (USERS) VA ULARNING BUYURTMALARI ====================
+
+export function normalizePhone(raw?: string): string {
+  if (!raw) return "";
+  const cleaned = raw.replace(/[^\d+]/g, "");
+  if (!cleaned) return "";
+  if (!cleaned.startsWith("+") && cleaned.startsWith("998")) {
+    return `+${cleaned}`;
+  }
+  return cleaned;
+}
+
+export async function getFirestoreUser(phone: string): Promise<UserDoc | null> {
+  const norm = normalizePhone(phone);
+  if (!db || !isFirebaseConfigured || !norm) return null;
+  try {
+    const snap = await getDoc(doc(db, "users", norm));
+    if (snap.exists()) {
+      return snap.data() as UserDoc;
+    }
+    return null;
+  } catch (err) {
+    console.warn("Foydalanuvchi ma'lumotlarini olishda xatolik:", err);
+    return null;
+  }
+}
+
+export async function saveFirestoreUser(userData: Partial<UserDoc> & { phone: string }): Promise<void> {
+  const norm = normalizePhone(userData.phone);
+  if (!db || !isFirebaseConfigured || !norm) return;
+  try {
+    const now = new Date().toISOString();
+    const userRef = doc(db, "users", norm);
+    const existing = await getDoc(userRef);
+
+    const payload: Partial<UserDoc> = {
+      id: norm,
+      phone: norm,
+      updatedAt: now,
+      ...(userData.name ? { name: userData.name } : {}),
+      ...(userData.addresses ? { addresses: userData.addresses } : {}),
+      ...(userData.defaultAddressId !== undefined ? { defaultAddressId: userData.defaultAddressId } : {}),
+      ...(userData.location ? { location: userData.location } : {}),
+    };
+
+    if (!existing.exists()) {
+      payload.createdAt = now;
+      payload.totalOrders = 0;
+      payload.totalSpent = 0;
+    }
+
+    const sanitized = cleanUndefined(payload);
+    await setDoc(userRef, sanitized, { merge: true });
+  } catch (err) {
+    console.warn("Foydalanuvchini Firestorega saqlashda xatolik:", err);
+  }
+}
+
+export async function incrementUserOrderStats(phone: string, orderTotal: number): Promise<void> {
+  const norm = normalizePhone(phone);
+  if (!db || !isFirebaseConfigured || !norm) return;
+  try {
+    const userRef = doc(db, "users", norm);
+    await updateDoc(userRef, {
+      totalOrders: increment(1),
+      totalSpent: increment(orderTotal),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch {}
+}
+
+export function subscribeToUserOrders(phone: string, callback: (orders: OrderDoc[]) => void): () => void {
+  const norm = normalizePhone(phone);
+  if (!db || !isFirebaseConfigured || !norm) {
+    callback([]);
+    return () => {};
+  }
+
+  try {
+    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        const all = snap.docs.map((d) => d.data() as OrderDoc);
+        const userOrders = all.filter((o) => {
+          const p = normalizePhone(o.customer?.phone);
+          return p === norm || o.userId === norm;
+        });
+        callback(userOrders);
+      },
+      (err) => {
+        console.warn("User buyurtmalari tinglovchisi xatosi:", err);
+      },
+    );
+    return unsubscribe;
+  } catch (err) {
+    console.warn("User buyurtmalariga ulanishda xatolik:", err);
+    return () => {};
+  }
+}
+
+export function subscribeToOrder(orderId: string, callback: (order: OrderDoc | null) => void): () => void {
+  if (!db || !isFirebaseConfigured || !orderId) {
+    callback(null);
+    return () => {};
+  }
+
+  try {
+    const unsubscribe = onSnapshot(
+      doc(db, "orders", orderId),
+      (snap) => {
+        if (snap.exists()) {
+          callback(snap.data() as OrderDoc);
+        } else {
+          callback(null);
+        }
+      },
+      (err) => {
+        console.warn("Buyurtma statusi tinglovchisi xatosi:", err);
+      },
+    );
+    return unsubscribe;
+  } catch (err) {
+    console.warn("Buyurtmaga ulanishda xatolik:", err);
+    return () => {};
+  }
 }
 
 

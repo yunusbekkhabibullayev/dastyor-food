@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { z } from "zod";
 import { districts } from "./mock-data";
+import { getFirestoreUser, normalizePhone, saveFirestoreUser } from "./firebase-data";
 
 export const addressSchema = z
   .object({
@@ -51,6 +52,30 @@ const defaults: Settings = {
 const key = "fastfood-settings-v1";
 let state: Settings = defaults;
 const listeners = new Set<() => void>();
+function getStoredUserPhone(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const raw = localStorage.getItem("fastfood-cart-v1");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return normalizePhone(parsed?.profile?.phone);
+    }
+  } catch {}
+  return "";
+}
+
+function syncUserToFirestore(settingsState: Settings) {
+  const phone = getStoredUserPhone();
+  if (phone && phone.length >= 9) {
+    void saveFirestoreUser({
+      phone,
+      addresses: settingsState.addresses,
+      defaultAddressId: settingsState.defaultAddressId,
+      location: settingsState.location,
+    });
+  }
+}
+
 function update(next: Settings) {
   state = next;
   try {
@@ -58,6 +83,7 @@ function update(next: Settings) {
   } catch {
     /* storage unavailable */
   }
+  syncUserToFirestore(next);
   listeners.forEach((f) => f());
 }
 export const profileSettings = {
@@ -70,6 +96,23 @@ export const profileSettings = {
     } catch {
       state = defaults;
     }
+
+    if (typeof window !== "undefined") {
+      const phone = getStoredUserPhone();
+      if (phone && phone.length >= 9) {
+        void getFirestoreUser(phone).then((u) => {
+          if (u && Array.isArray(u.addresses) && u.addresses.length > 0 && state.addresses.length === 0) {
+            update({
+              ...state,
+              addresses: u.addresses as SavedAddress[],
+              defaultAddressId: u.defaultAddressId ?? u.addresses[0]?.id ?? null,
+              location: u.location && !state.location ? u.location : state.location,
+            });
+          }
+        });
+      }
+    }
+
     listeners.forEach((f) => f());
   },
   saveAddress(input: SavedAddress) {

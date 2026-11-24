@@ -13,7 +13,7 @@ import { formatAddress, profileSettings, useProfileSettings } from "@/lib/profil
 import { customerReady } from "@/lib/form-validation";
 import { formatDelivery, formatSom, getRestaurant } from "@/lib/mock-data";
 import { getLiveRestaurant } from "@/lib/use-food-data";
-import { createFirestoreOrder } from "@/lib/firebase-data";
+import { createFirestoreOrder, incrementUserOrderStats, normalizePhone, saveFirestoreUser } from "@/lib/firebase-data";
 import { isFirebaseConfigured, type OrderDoc } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 
@@ -121,10 +121,13 @@ function CheckoutPage() {
       // 1. Save to Firebase Firestore if available
       if (isFirebaseConfigured) {
         try {
+          const userId = normalizePhone(order.customer.phone);
           const orderDoc: OrderDoc = {
             id: order.id,
+            userId: userId || undefined,
             createdAt: order.createdAt,
             restaurantId: order.restaurantId,
+            restaurantName: r?.name,
             lines: order.lines,
             subtotal: order.subtotal,
             delivery: order.delivery,
@@ -141,6 +144,15 @@ function CheckoutPage() {
             },
           };
           await createFirestoreOrder(orderDoc);
+          if (userId) {
+            void incrementUserOrderStats(userId, order.total);
+            void saveFirestoreUser({
+              phone: userId,
+              name: order.customer.name,
+              location: loc ? { lat: loc.lat, lng: loc.lng, address: loc.address } : null,
+              addresses: settings.addresses,
+            });
+          }
         } catch (dbErr) {
           console.warn("Firestore save note:", dbErr);
         }

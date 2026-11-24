@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, ClipboardList } from "lucide-react";
 import { AppShell } from "@/components/app/BottomNav";
 import { RestaurantLogo } from "@/components/app/food";
@@ -7,6 +8,8 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { orderStageIndex, orderStages, useCart, type Order } from "@/lib/cart-store";
 import { formatSom, getRestaurant } from "@/lib/mock-data";
 import { getLiveRestaurant } from "@/lib/use-food-data";
+import { subscribeToUserOrders } from "@/lib/firebase-data";
+import { type OrderDoc } from "@/lib/firebase";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -26,15 +29,58 @@ function OrdersPage() {
   const s = useCart();
   const ready = useHydrated() && !!s.ready;
   const now = useNow(5000);
+  const [firestoreOrders, setFirestoreOrders] = useState<OrderDoc[]>([]);
+
+  useEffect(() => {
+    if (!s.profile.phone) return;
+    const unsub = subscribeToUserOrders(s.profile.phone, (orders) => {
+      setFirestoreOrders(orders);
+    });
+    return unsub;
+  }, [s.profile.phone]);
+
+  const allOrders: Order[] = useMemo(() => {
+    const map = new Map<string, Order>();
+    for (const o of s.orders) {
+      map.set(o.id, o);
+    }
+    for (const fo of firestoreOrders) {
+      map.set(fo.id, {
+        id: fo.id,
+        createdAt: fo.createdAt,
+        restaurantId: fo.restaurantId,
+        lines: fo.lines,
+        subtotal: fo.subtotal,
+        delivery: fo.delivery,
+        total: fo.total,
+        status: fo.status,
+        customer: fo.customer,
+      });
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }, [s.orders, firestoreOrders]);
+
   const last = orderStages.length - 1;
-  const current = s.orders.filter((o) => orderStageIndex(o, now) < last);
-  const past = s.orders.filter((o) => orderStageIndex(o, now) >= last);
+  const current = allOrders.filter((o) => {
+    if (o.status) {
+      return o.status === "new" || o.status === "preparing" || o.status === "delivering";
+    }
+    return orderStageIndex(o, now) < last;
+  });
+  const past = allOrders.filter((o) => {
+    if (o.status) {
+      return o.status === "delivered" || o.status === "cancelled";
+    }
+    return orderStageIndex(o, now) >= last;
+  });
 
   return (
     <AppShell>
       <PageHeader title="Buyurtmalarim" back="/profile" />
       <div className="px-5 pb-3"></div>
-      {!ready ? null : s.orders.length === 0 ? (
+      {!ready ? null : allOrders.length === 0 ? (
         <div className="flex flex-col items-center px-8 pt-16 text-center">
           <div className="grid h-20 w-20 place-items-center rounded-full bg-primary-soft text-primary">
             <ClipboardList className="h-9 w-9" />
@@ -79,7 +125,7 @@ function Group({ title, orders, now }: { title: string; orders: Order[]; now: nu
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-bold">{r?.name ?? "Xona"}</p>
-                    <StatusBadge stage={orderStageIndex(o, now)} />
+                    <StatusBadge stage={orderStageIndex(o, now)} status={o.status} />
                   </div>
                   <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
                     {o.id} · {new Date(o.createdAt).toLocaleDateString("uz-UZ")} ·{" "}
